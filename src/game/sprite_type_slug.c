@@ -4,8 +4,8 @@
 
 #include "game/inversion.h"
 
-#define GRAVITY_LIMIT  10.0 /* m/s */
-#define GRAVITY_ACCEL  20.0 /* m/s**2 */
+#define GRAVITY_LIMIT  16.0 /* m/s */
+#define GRAVITY_ACCEL  30.0 /* m/s**2 */
 
 struct sprite_slug {
   struct sprite hdr;

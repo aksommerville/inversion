@@ -3,8 +3,8 @@
 #define WALK_SPEED      6.0 /* m/s */
 #define JUMP_POWER_MAX 20.0 /* m/s */
 #define JUMP_DECAY     70.0 /* m/s**2 */
-#define GRAVITY_LIMIT  10.0 /* m/s */
-#define GRAVITY_ACCEL  20.0 /* m/s**2 */
+#define GRAVITY_LIMIT  16.0 /* m/s */
+#define GRAVITY_ACCEL  30.0 /* m/s**2 */
 
 struct sprite_hero {
   struct sprite hdr;
@@ -71,7 +71,7 @@ static void hero_walk(struct sprite *sprite,int d,double elapsed) {
   sprite_move(sprite,dx,dy);
   
   if ((SPRITE->animclock-=elapsed)<=0.0) {
-    SPRITE->animclock+=0.200;
+    SPRITE->animclock+=0.150;
     if (++(SPRITE->animframe)>=4) SPRITE->animframe=0;
   }
 }
@@ -196,7 +196,7 @@ static void _hero_update(struct sprite *sprite,double elapsed) {
   }
   
   // Jump or gravity.
-  if (SPRITE->seated&&(g.input&EGG_BTN_SOUTH)&&!SPRITE->jump_blackout) {
+  if (SPRITE->seated&&(g.input&EGG_BTN_SOUTH)&&!SPRITE->jump_blackout&&!SPRITE->ducking) {
     hero_jump_begin(sprite,elapsed);
   } else if (SPRITE->jumping) {
     hero_jump_update(sprite,elapsed);
@@ -216,8 +216,23 @@ static void _hero_update(struct sprite *sprite,double elapsed) {
  */
  
 static void _hero_render(struct sprite *sprite,int x,int y) {
+
   uint8_t tileid=sprite->tileid;
   uint8_t xform=xform_plus_gravity(sprite->xform);
+  //TODO dead hat animation
+  if (SPRITE->ducking) {
+    tileid+=9;
+  } else if (SPRITE->jumping) {
+    tileid+=3;
+  } else if (!SPRITE->seated) {
+    tileid+=4;
+  } else if (SPRITE->walking) {
+    switch (SPRITE->animframe) {
+      case 1: tileid+=1; break;
+      case 3: tileid+=2; break;
+    }
+  } //TODO wall press
+  
   graf_tile(&g.graf,x,y,tileid,xform);
   int headdx=0,headdy=-NS_sys_tilesize;
   deltai_plus_gravity(&headdx,&headdy);
