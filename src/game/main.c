@@ -50,6 +50,9 @@ int egg_client_init() {
   return 0;
 }
 
+/* Client hooks.
+ */
+
 void egg_client_notify(int k,int v) {
 }
 
@@ -64,6 +67,9 @@ void egg_client_render() {
   game_render();
   graf_flush(&g.graf);
 }
+
+/* Resources.
+ */
 
 int res_get(void *dstpp,int tid,int rid) {
   int lo=0,hi=g.resc;
@@ -80,4 +86,17 @@ int res_get(void *dstpp,int tid,int rid) {
     }
   }
   return 0;
+}
+
+/* Sound.
+ */
+ 
+void inv_sound(int rid) {
+  egg_play_sound(rid,1.0f,0.0f);
+}
+
+void inv_song(int rid) {
+  if (rid==g.song_playing) return;
+  g.song_playing=rid;
+  egg_play_song(1,rid,1,1.0f,0.0f);
 }

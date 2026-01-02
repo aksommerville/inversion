@@ -15,6 +15,7 @@ struct sprite {
   const void *serial;
   int serialc;
   uint8_t tileid,xform;
+  uint8_t pass_physics; // NS_physics_vacant by default; the one map value we can pass thru.
 };
 
 struct sprite_type {
@@ -53,5 +54,19 @@ FOR_EACH_SPRTYPE
 uint8_t xform_plus_gravity(uint8_t xform);
 void deltai_plus_gravity(int *dx,int *dy);
 void deltaf_plus_gravity(double *dx,double *dy);
+
+struct aabb { double l,r,t,b; };
+struct collision {
+  double l,r,t,b;
+  struct sprite *sprite;
+};
+
+// Accounts for gravity.
+void sprite_get_hitbox(struct aabb *dst,const struct sprite *sprite);
+
+/* One axis at a time, please.
+ * Nonzero if it moves at all.
+ */
+int sprite_move(struct sprite *sprite,double dx,double dy);
 
 #endif

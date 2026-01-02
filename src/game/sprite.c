@@ -37,13 +37,25 @@ struct sprite *sprite_spawn(
   sprite->arg=arg;
   sprite->serial=serial;
   sprite->serialc=serialc;
+  sprite->hbl=-0.5;
+  sprite->hbr=0.5;
+  sprite->hbt=-0.5;
+  sprite->hbb=0.5;
+  sprite->pass_physics=NS_physics_vacant;
   
   struct cmdlist_reader reader;
   if (sprite_reader_init(&reader,serial,serialc)>=0) {
     struct cmdlist_entry cmd;
     while (cmdlist_reader_next(&cmd,&reader)>0) {
       switch (cmd.opcode) {
+        case CMD_sprite_solid: sprite->solid=1; break;
         case CMD_sprite_tile: sprite->tileid=cmd.arg[0]; sprite->xform=cmd.arg[1]; break;
+        case CMD_sprite_hitbox: {
+            sprite->hbl=(double)((int8_t)cmd.arg[0])/(double)NS_sys_tilesize;
+            sprite->hbr=(double)((int8_t)cmd.arg[1])/(double)NS_sys_tilesize;
+            sprite->hbt=(double)((int8_t)cmd.arg[2])/(double)NS_sys_tilesize;
+            sprite->hbb=(double)((int8_t)cmd.arg[3])/(double)NS_sys_tilesize;
+          } break;
       }
     }
   }
@@ -95,10 +107,34 @@ void sprites_render() {
   int i=g.spritec;
   for (;i-->0;p++) {
     struct sprite *sprite=*p;
+    
+    uint8_t xform=0;
+    //if (!sprite->type->render) xform=xform_plus_gravity(sprite->xform); // Should sprites render per gravity by default? Having second thoughts.
     int x=(int)(sprite->x*NS_sys_tilesize);
     int y=(int)(sprite->y*NS_sys_tilesize);
-    if (sprite->type->render) sprite->type->render(sprite,x,y);
-    else graf_tile(&g.graf,x,y,sprite->tileid,xform_plus_gravity(sprite->xform));
+    #define DRAWME(xx,yy) { \
+      if (sprite->type->render) sprite->type->render(sprite,xx,yy); \
+      else graf_tile(&g.graf,xx,yy,sprite->tileid,xform); \
+    }
+    DRAWME(x,y)
+    
+    /* If we're within one meter of the edge, draw on the opposite side too, in case it overlaps the screen.
+     * Two meters if a custom renderer is in play.
+     */
+    int edge=NS_sys_tilesize;
+    if (sprite->type->render) edge<<=1;
+    if (x<edge) {
+      DRAWME(x+FBW,y)
+      if (y<edge) DRAWME(x+FBW,y+FBH)
+      else if (y>FBH-edge) DRAWME(x+FBW,y-FBH)
+    } else if (x>FBW-edge) {
+      DRAWME(x-FBW,y)
+      if (y<edge) DRAWME(x-FBW,y+FBH)
+      else if (y>FBH-edge) DRAWME(x-FBW,y-FBH)
+    }
+    if (y<edge) DRAWME(x,y+FBH)
+    else if (y>FBH-edge) DRAWME(x,y-FBH)
+    #undef DRAWME
   }
 }
 

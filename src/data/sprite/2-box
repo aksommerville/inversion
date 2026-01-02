@@ -1,0 +1,4 @@
+image image:tiles
+tile 144 0
+type (u16:sprtype)slug
+solid

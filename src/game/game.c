@@ -161,3 +161,26 @@ void game_render() {
   graf_decal(&g.graf,0,0,0,0,FBW,FBH);
   sprites_render();
 }
+
+/* Gravity.
+ */
+
+void gravity_reverse() {
+  switch (g.gravity) {
+    case 0x40: g.gravity=0x02; break;
+    case 0x10: g.gravity=0x08; break;
+    case 0x08: g.gravity=0x10; break;
+    case 0x02: g.gravity=0x40; break;
+    default: g.gravity=0x02;
+  }
+}
+
+void gravity_rotate(int d) {
+  switch (g.gravity) {
+    case 0x40: g.gravity=(d<0)?0x10:0x08; break;
+    case 0x10: g.gravity=(d<0)?0x02:0x40; break;
+    case 0x08: g.gravity=(d<0)?0x40:0x02; break;
+    case 0x02: g.gravity=(d<0)?0x08:0x10; break;
+    default: g.gravity=0x02;
+  }
+}

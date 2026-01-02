@@ -28,6 +28,7 @@ extern struct g {
   struct sprite **spritev;
   int spritec,spritea;
   uint8_t gravity; // Cardinal bit: (0x40,0x10,0x08,0x02)=(N,W,E,S)
+  int song_playing;
 } g;
 
 void game_reset(int mapid); // Do not call during sprite updates!
@@ -35,5 +36,11 @@ void game_update(double elapsed);
 void game_render();
 
 int res_get(void *dstpp,int tid,int rid);
+
+void inv_sound(int rid);
+void inv_song(int rid);
+
+void gravity_reverse();
+void gravity_rotate(int d); // <0=deasil, >0=clockwise
 
 #endif

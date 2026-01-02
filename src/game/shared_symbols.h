@@ -17,9 +17,11 @@
 #define CMD_map_sprite    0x61 /* u16:position, u16:spriteid, u32:arg */
 #define CMD_map_door      0x62 /* u16:position, u16:mapid, u16:dstposition, u16:arg */
 
-#define CMD_sprite_image 0x20 /* u16:imageid */
-#define CMD_sprite_tile  0x21 /* u8:tileid, u8:xform */
-#define CMD_sprite_type  0x22 /* u16:sprtype */
+#define CMD_sprite_solid  0x01 /* --- */
+#define CMD_sprite_image  0x20 /* u16:imageid */
+#define CMD_sprite_tile   0x21 /* u8:tileid, u8:xform */
+#define CMD_sprite_type   0x22 /* u16:sprtype */
+#define CMD_sprite_hitbox 0x40 /* s8:l s8:r s8:t s8:b */
 
 #define NS_tilesheet_physics 1
 #define NS_tilesheet_family 0
@@ -36,8 +38,10 @@
 // Should match everything after 'spriteid' in the CMD_map_sprite args.
 #define NS_sprtype_dummy 0 /* (u32)0 */
 #define NS_sprtype_hero  1 /* (u32)0 */
+#define NS_sprtype_slug  2 /* (u32)0 */
 #define FOR_EACH_SPRTYPE \
   _(dummy) \
-  _(hero)
+  _(hero) \
+  _(slug)
 
 #endif
