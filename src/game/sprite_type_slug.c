@@ -30,6 +30,7 @@ static void _slug_update(struct sprite *sprite,double elapsed) {
       SPRITE->gravity=0.0;
     }
   } else {
+    sprite_force_ib(sprite);
     if (SPRITE->seated) {
       SPRITE->seated=0;
     }

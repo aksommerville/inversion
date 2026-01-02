@@ -12,7 +12,7 @@ Single-screen platformer where you can change the environment three ways:
 ## TODO
 
 - [x] Animate walking and jumping.
-- [ ] Gravity rotation.
+- [x] Gravity rotation.
 - [ ] Wall inversion.
 - [ ] Goal.
 - [ ] Gravity feels a bit floaty. Tighten up.

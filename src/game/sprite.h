@@ -69,4 +69,8 @@ void sprite_get_hitbox(struct aabb *dst,const struct sprite *sprite);
  */
 int sprite_move(struct sprite *sprite,double dx,double dy);
 
+int sprite_detect_collisions(struct collision *collv,int colla,const struct aabb *aabb,const struct sprite *sprite);
+
+void sprite_force_ib(struct sprite *sprite);
+
 #endif

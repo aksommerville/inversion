@@ -59,6 +59,11 @@ void egg_client_notify(int k,int v) {
 void egg_client_update(double elapsed) {
   g.pvinput=g.input;
   g.input=egg_input_get_one(0);
+  
+  //XXX
+  if ((g.input&EGG_BTN_EAST)&&!(g.pvinput&EGG_BTN_EAST)) g.gravity=0;
+  if ((g.input&EGG_BTN_AUX1)&&!(g.pvinput&EGG_BTN_AUX1)) game_reset(1);
+  
   game_update(elapsed);
 }
 

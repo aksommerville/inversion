@@ -98,10 +98,44 @@ void sprites_update(double elapsed) {
   }
 }
 
+/* Partial cocktail sort for render order.
+ */
+ 
+static int sprites_rendercmp(const struct sprite *a,const struct sprite *b) {
+  // Hero last. And I think that's all we care about.
+  if (a->type==&sprite_type_hero) return 1;
+  if (b->type==&sprite_type_hero) return -1;
+  return 0;
+}
+
+static void sprites_sort_partial() {
+  if (g.spritec<2) return;
+  int first=1,last=g.spritec-1,i=1,done=1;
+  for (;i<=last;i++) {
+    struct sprite *a=g.spritev[i-1];
+    struct sprite *b=g.spritev[i];
+    if (sprites_rendercmp(a,b)>0) {
+      done=0;
+      g.spritev[i-1]=b;
+      g.spritev[i]=a;
+    }
+  }
+  if (done) return;
+  for (i=g.spritec-1;i-->1;) {
+    struct sprite *a=g.spritev[i-1];
+    struct sprite *b=g.spritev[i];
+    if (sprites_rendercmp(a,b)>0) {
+      g.spritev[i-1]=b;
+      g.spritev[i]=a;
+    }
+  }
+}
+
 /* Render.
  */
  
 void sprites_render() {
+  sprites_sort_partial();
   graf_set_input(&g.graf,g.texid_tiles);
   struct sprite **p=g.spritev;
   int i=g.spritec;
@@ -181,8 +215,8 @@ uint8_t xform_plus_gravity(uint8_t xform) {
         if (xform&EGG_XFORM_SWAP) return xform^EGG_XFORM_XREV;
         return xform^EGG_XFORM_YREV;
       }
-    case 0x10: return xform;//TODO clockwise
-    case 0x08: return xform;//TODO deasil
+    case 0x10: return xform^(EGG_XFORM_SWAP|EGG_XFORM_YREV);
+    case 0x08: return xform^(EGG_XFORM_SWAP|EGG_XFORM_XREV);
   }
   return xform;
 }
@@ -203,4 +237,14 @@ void deltaf_plus_gravity(double *dx,double *dy) {
     case 0x08: { double xx=*dy,yy=-*dx; *dx=xx; *dy=yy; } break;
     case 0x02: break;
   }
+}
+
+/* Force in bounds.
+ */
+ 
+void sprite_force_ib(struct sprite *sprite) {
+  if (sprite->x<0.0) sprite->x+=NS_sys_mapw;
+  else if (sprite->x>NS_sys_mapw) sprite->x-=NS_sys_mapw;
+  if (sprite->y<0.0) sprite->y+=NS_sys_maph;
+  else if (sprite->y>NS_sys_maph) sprite->y-=NS_sys_maph;
 }

@@ -5,6 +5,8 @@
 #define JUMP_DECAY     70.0 /* m/s**2 */
 #define GRAVITY_LIMIT  16.0 /* m/s */
 #define GRAVITY_ACCEL  30.0 /* m/s**2 */
+#define DUCK_CONFIRM_TIME  0.500
+#define WALK_COOLDOWN_TIME 0.150
 
 struct sprite_hero {
   struct sprite hdr;
@@ -18,6 +20,12 @@ struct sprite_hero {
   double jumpdx,jumpdy;
   double gravity;
   double jumpclock; // Counts up during the jump.
+  int ducksignx,ducksigny;
+  uint8_t ducksigntileid; // + animframe
+  uint8_t ducksignxform;
+  double duckclock;
+  int duckcx,duckcy,duckox,duckoy;
+  double walk_cooldown; // Counts down immediately after a rotation, since the duck button is now a walk button.
 };
 
 #define SPRITE ((struct sprite_hero*)sprite)
@@ -35,8 +43,8 @@ static int _hero_init(struct sprite *sprite) {
  
 static void hero_walk_buttons(int *l,int *r) {
   switch (g.gravity) {
-    case 0x10: *l=EGG_BTN_UP; *r=EGG_BTN_DOWN; break;
-    case 0x08: *l=EGG_BTN_DOWN; *r=EGG_BTN_UP; break;
+    case 0x10: *l=EGG_BTN_UP; *r=EGG_BTN_DOWN; return;
+    case 0x08: *l=EGG_BTN_DOWN; *r=EGG_BTN_UP; return;
   }
   *l=EGG_BTN_LEFT;
   *r=EGG_BTN_RIGHT;
@@ -86,14 +94,15 @@ static void hero_walk_end(struct sprite *sprite) {
  * The hero sprite is vertically asymmetric.
  * So when we bonk head on the ceiling, if we leave (sprite->y) where it is, we'd be a head away.
  * (Mind that it's not always (y)).
+ * Another thing here: Swapping horizontal gravities also correctly swaps the horizontal xform, but we actually want Dot to face the same way after.
  */
  
 static void hero_flip(struct sprite *sprite) {
   double d=sprite->hbb+sprite->hbt;
   switch (g.gravity) {
     case 0x40: sprite->y-=d; break;
-    case 0x10: sprite->x-=d; break;
-    case 0x08: sprite->x+=d; break;
+    case 0x10: sprite->x-=d; sprite->xform^=EGG_XFORM_XREV; break;
+    case 0x08: sprite->x+=d; sprite->xform^=EGG_XFORM_XREV; break;
     case 0x02: sprite->y+=d; break;
   }
 }
@@ -168,6 +177,196 @@ static void hero_gravity_update(struct sprite *sprite,double elapsed) {
   }
 }
 
+/* (candx,candy) is a solid cell and (otherx,othery) is passable adjacent to it.
+ * These are presumably directly under the hero's feet.
+ * Returns nonzero if the rotation would be clockwise, zero if deasil.
+ * Also optionall (nx,ny), the new sprite position.
+ */
+ 
+static int hero_hitbox_for_rotation(
+  struct aabb *hitbox,
+  const struct sprite *sprite,
+  int candx,int candy,int otherx,int othery,
+  double *nx,double *ny
+) {
+  // Poison (hitbox) such that it definitely will collide with something, if we don't replace it.
+  hitbox->l=hitbox->t=0.0;
+  hitbox->r=NS_sys_mapw;
+  hitbox->b=NS_sys_maph;
+  switch (g.gravity) {
+    case 0x40: case 0x02: if (otherx<candx) { // top or bottom to left
+        hitbox->l=candx-sprite->hbb+sprite->hbt;
+        hitbox->r=candx;
+        hitbox->t=candy+0.5-sprite->hbr;
+        hitbox->b=candy+0.5-sprite->hbl;
+        if (nx) *nx=candx-sprite->hbb;
+        if (ny) *ny=candy+0.5;
+      } else if (otherx>candx) { // top or bottom to right
+        hitbox->l=candx+1.0;
+        hitbox->r=candx+1.0-sprite->hbb-sprite->hbt;
+        hitbox->t=candy+0.5+sprite->hbl;
+        hitbox->b=candy+0.5+sprite->hbr;
+        if (nx) *nx=candx+1.0+sprite->hbb;
+        if (ny) *ny=candy+0.5;
+      } break;
+    case 0x10: case 0x08: if (othery<candy) { // left or right to top
+        hitbox->l=candx+0.5+sprite->hbl;
+        hitbox->r=candx+0.5+sprite->hbr;
+        hitbox->t=candy-sprite->hbb+sprite->hbt;
+        hitbox->b=candy;
+        if (nx) *nx=candx+0.5;
+        if (ny) *ny=candy-sprite->hbb;
+      } else if (othery>candy) { // left or right to bottom
+        hitbox->l=candx+0.5+sprite->hbl;
+        hitbox->r=candx+0.5+sprite->hbr;
+        hitbox->t=candy+1.0;
+        hitbox->b=candy+1.0+sprite->hbb-sprite->hbt;
+        if (nx) *nx=candx+0.5;
+        if (ny) *ny=candy+1.0+sprite->hbb;
+      } break;
+  }
+  switch (g.gravity) {
+    case 0x40: return (otherx<candx)?1:0;
+    case 0x10: return (othery>candy)?1:0;
+    case 0x08: return (othery<candy)?1:0;
+    case 0x02: return (otherx>candx)?1:0;
+  }
+  return 0;
+}
+
+/* Ducking.
+ */
+ 
+static void hero_duck_commit(struct sprite *sprite) {
+  
+  /* Confirm once more that the target position is kosher.
+   * If not, reset the clock and get out.
+   * I don't expect this ever to happen, but maybe there are moving platforms or something.
+   */
+  struct aabb hitbox;
+  double nx=sprite->x,ny=sprite->y;
+  int clockwise=hero_hitbox_for_rotation(&hitbox,sprite,SPRITE->duckcx,SPRITE->duckcy,SPRITE->duckox,SPRITE->duckoy,&nx,&ny);
+  struct collision coll;
+  if (sprite_detect_collisions(&coll,1,&hitbox,sprite)) {
+    SPRITE->duckclock=0.0;
+    return;
+  }
+  
+  SPRITE->ducking=0; // You'd think we need a blackout but nope! Since we're changing gravity's direction, the duck button changes.
+  SPRITE->walk_cooldown=WALK_COOLDOWN_TIME;
+  sprite->x=nx;
+  sprite->y=ny;
+  if (g.gravity==0x40) sprite->xform^=EGG_XFORM_XREV;
+  gravity_rotate(clockwise?1:-1);
+  if (g.gravity==0x40) sprite->xform^=EGG_XFORM_XREV;
+}
+ 
+static void hero_duck_update(struct sprite *sprite,double elapsed) {
+  if (SPRITE->ducksigntileid==0x91) {
+    if ((SPRITE->duckclock+=elapsed)>=DUCK_CONFIRM_TIME) {
+      hero_duck_commit(sprite);
+      return;
+    }
+  }
+  if ((SPRITE->animclock-=elapsed)<=0.0) {
+    SPRITE->animclock+=0.250;
+    if (++(SPRITE->animframe)>=2) SPRITE->animframe=0;
+  }
+}
+
+static void hero_duck_begin(struct sprite *sprite) {
+
+  SPRITE->ducking=1;
+  SPRITE->animclock=0.0;
+  SPRITE->animframe=0;
+  SPRITE->duckclock=0.0;
+  
+  /* Find the corner candidate cell.
+   * Rotation only happens on map corners. Sprites don't count.
+   * I'm going to design maps such that the edges match each other, so we shouldn't need to worry about OOB.
+   * Just call it invalid if OOB.
+   * Locate the two cells below my feet. If one is passable and the other solid, the solid one is our corner candidate.
+   */
+  double afx=-0.5,bfx=0.5,afy=1.0,bfy=1.0;
+  deltaf_plus_gravity(&afx,&afy);
+  deltaf_plus_gravity(&bfx,&bfy);
+  afx+=sprite->x;
+  afy+=sprite->y;
+  bfx+=sprite->x;
+  bfy+=sprite->y;
+  int ax=(int)afx,ay=(int)afy,bx=(int)bfx,by=(int)bfy;
+  int candx=-1,candy,otherx,othery; // (candx<0) means there is no corner.
+  if ((ax==bx)&&(ay==by)) {
+    // Exactly centered. I guess we could fudge one of them out, but meh.
+  } else if (
+    (ax<0)||(ay<0)||(ax>=NS_sys_mapw)||(ay>=NS_sys_maph)||
+    (bx<0)||(by<0)||(bx>=NS_sys_mapw)||(by>=NS_sys_maph)
+  ) {
+    // One cell OOB. This shouldn't come up.
+  } else {
+    uint8_t aph=g.map[ay*NS_sys_mapw+ax];
+    uint8_t bph=g.map[by*NS_sys_mapw+bx];
+    if ((aph==sprite->pass_physics)&&(bph!=sprite->pass_physics)) {
+      candx=bx;
+      candy=by;
+      otherx=ax;
+      othery=ay;
+    } else if ((aph!=sprite->pass_physics)&&(bph==sprite->pass_physics)) {
+      candx=ax;
+      candy=ay;
+      otherx=bx;
+      othery=by;
+    } else {
+      // Both passable or both vacant, ie the typical "not a corner" case.
+    }
+  }
+  
+  /* If we have a corner candidate, calculate our rotated position and confirm it is passable.
+   */
+  int clockwise=0;
+  if (candx>=0) {
+    struct aabb hitbox;
+    clockwise=hero_hitbox_for_rotation(&hitbox,sprite,candx,candy,otherx,othery,0,0);
+    struct collision coll;
+    if (sprite_detect_collisions(&coll,1,&hitbox,sprite)) {
+      candx=-1;
+    }
+  }
+  
+  /* Commit with valid rotation?
+   */
+  if (candx>=0) {
+    SPRITE->ducksignx=candx*NS_sys_tilesize+(NS_sys_tilesize>>1);
+    SPRITE->ducksigny=candy*NS_sys_tilesize+(NS_sys_tilesize>>1);
+    SPRITE->ducksigntileid=0x91;
+    // Transform is of course a huge drama. Based on gravity, and also the "clockwise" response from hero_hitbox_for_rotation().
+    // Natural orientation is deasil from down-gravity.
+    switch (g.gravity) {
+      case 0x40: SPRITE->ducksignxform=clockwise?(EGG_XFORM_YREV):(EGG_XFORM_XREV|EGG_XFORM_YREV); break;
+      case 0x10: SPRITE->ducksignxform=clockwise?(EGG_XFORM_SWAP|EGG_XFORM_XREV|EGG_XFORM_YREV):(EGG_XFORM_SWAP|EGG_XFORM_YREV); break;
+      case 0x08: SPRITE->ducksignxform=clockwise?(EGG_XFORM_SWAP):(EGG_XFORM_SWAP|EGG_XFORM_XREV); break;
+      case 0x02: SPRITE->ducksignxform=clockwise?(EGG_XFORM_XREV):(0); break;
+    }
+    SPRITE->duckcx=candx;
+    SPRITE->duckcy=candy;
+    SPRITE->duckox=otherx;
+    SPRITE->duckoy=othery;
+    
+  /* Commit with invalid rotation.
+   * Put the indicator at the quantized foot cell.
+   */
+  } else {
+    int cdx=0,cdy=1;
+    deltai_plus_gravity(&cdx,&cdy);
+    int x=(int)sprite->x+cdx;
+    int y=(int)sprite->y+cdy;
+    SPRITE->ducksignx=x*NS_sys_tilesize+(NS_sys_tilesize>>1);
+    SPRITE->ducksigny=y*NS_sys_tilesize+(NS_sys_tilesize>>1);
+    SPRITE->ducksigntileid=0x93;
+    SPRITE->ducksignxform=0;
+  }
+}
+
 /* Update.
  */
  
@@ -175,23 +374,35 @@ static void _hero_update(struct sprite *sprite,double elapsed) {
 
   // Walking.
   if (!SPRITE->ducking) {
-    int lbtn,rbtn;
-    hero_walk_buttons(&lbtn,&rbtn);
-    int btn=g.input&(lbtn|rbtn);
-    if (btn==lbtn) hero_walk(sprite,-1,elapsed);
-    else if (btn==rbtn) hero_walk(sprite,1,elapsed);
-    else if (SPRITE->walking) hero_walk_end(sprite);
+    if (SPRITE->walk_cooldown>0.0) {
+      if (SPRITE->walking) hero_walk_end(sprite);
+      if (!(g.input&(EGG_BTN_LEFT|EGG_BTN_RIGHT|EGG_BTN_UP|EGG_BTN_DOWN))) {
+        SPRITE->walk_cooldown=0.0; // instant freeze
+      } else {
+        SPRITE->walk_cooldown-=elapsed;
+      }
+    } else {
+      int lbtn,rbtn;
+      hero_walk_buttons(&lbtn,&rbtn);
+      int btn=g.input&(lbtn|rbtn);
+      if (btn==lbtn) hero_walk(sprite,-1,elapsed);
+      else if (btn==rbtn) hero_walk(sprite,1,elapsed);
+      else if (SPRITE->walking) hero_walk_end(sprite);
+    }
   }
   
   // Ducking.
   if (SPRITE->ducking) {
     if (!(g.input&hero_duck_button())) {
       SPRITE->ducking=0;
+    } else {
+      hero_duck_update(sprite,elapsed);
     }
   } else if (SPRITE->seated) {
     if (g.input&hero_duck_button()) {
       if (SPRITE->walking) hero_walk_end(sprite);
-      SPRITE->ducking=1;
+      hero_duck_begin(sprite);
+      hero_duck_update(sprite,elapsed);
     }
   }
   
@@ -205,11 +416,7 @@ static void _hero_update(struct sprite *sprite,double elapsed) {
     hero_gravity_update(sprite,elapsed);
   }
   
-  // The world wraps around. If we've gone offscreen, wrap it.
-  if (sprite->x<0.0) sprite->x+=NS_sys_mapw;
-  else if (sprite->x>NS_sys_mapw) sprite->x-=NS_sys_mapw;
-  if (sprite->y<0.0) sprite->y+=NS_sys_maph;
-  else if (sprite->y>NS_sys_maph) sprite->y-=NS_sys_maph;
+  sprite_force_ib(sprite);
 }
 
 /* Render.
@@ -237,6 +444,10 @@ static void _hero_render(struct sprite *sprite,int x,int y) {
   int headdx=0,headdy=-NS_sys_tilesize;
   deltai_plus_gravity(&headdx,&headdy);
   graf_tile(&g.graf,x+headdx,y+headdy,tileid-0x10,xform);
+  
+  if (SPRITE->ducking) {
+    graf_tile(&g.graf,SPRITE->ducksignx,SPRITE->ducksigny,SPRITE->ducksigntileid+SPRITE->animframe,SPRITE->ducksignxform);
+  }
 }
 
 /* Type definition.

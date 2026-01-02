@@ -22,10 +22,10 @@ void sprite_get_hitbox(struct aabb *dst,const struct sprite *sprite) {
         dst->b=sprite->y+sprite->hbr;
       } break;
     case 0x08: {
-        dst->l=sprite->x+sprite->hbb;
-        dst->r=sprite->x+sprite->hbt;
-        dst->t=sprite->y-sprite->hbl;
-        dst->b=sprite->y-sprite->hbr;
+        dst->l=sprite->x+sprite->hbt;
+        dst->r=sprite->x+sprite->hbb;
+        dst->t=sprite->y-sprite->hbr;
+        dst->b=sprite->y-sprite->hbl;
       } break;
     case 0x02: {
         dst->l=sprite->x+sprite->hbl;
@@ -79,7 +79,7 @@ static double hbb(const struct sprite *sprite) {
  * We'll never return more than (colla); we might miss collisions if the list fills.
  */
  
-static int sprite_detect_collisions(struct collision *collv,int colla,const struct aabb *aabb,const struct sprite *sprite) {
+int sprite_detect_collisions(struct collision *collv,int colla,const struct aabb *aabb,const struct sprite *sprite) {
   int collc=0;
 
   /* Check the grid.
