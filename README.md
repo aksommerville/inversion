@@ -13,7 +13,7 @@ Single-screen platformer where you can change the environment three ways:
 
 - [x] Animate walking and jumping.
 - [x] Gravity rotation.
-- [ ] Wall inversion.
+- [x] Wall inversion.
 - [ ] Goal.
 - [ ] Gravity feels a bit floaty. Tighten up.
 - [ ] Hazards.

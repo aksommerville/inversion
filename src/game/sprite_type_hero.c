@@ -7,6 +7,7 @@
 #define GRAVITY_ACCEL  30.0 /* m/s**2 */
 #define DUCK_CONFIRM_TIME  0.500
 #define WALK_COOLDOWN_TIME 0.150
+#define INVERT_ANIMTIME 0.150
 
 struct sprite_hero {
   struct sprite hdr;
@@ -15,6 +16,7 @@ struct sprite_hero {
   int ducking;
   int walking; // -1,0,1
   int jumping;
+  int pushing; // -1,0,1
   int seated;
   int jump_blackout;
   double jumpdx,jumpdy;
@@ -26,6 +28,7 @@ struct sprite_hero {
   double duckclock;
   int duckcx,duckcy,duckox,duckoy;
   double walk_cooldown; // Counts down immediately after a rotation, since the duck button is now a walk button.
+  int invert_cooldown; // Timing driven by (animclock,animframe)
 };
 
 #define SPRITE ((struct sprite_hero*)sprite)
@@ -60,6 +63,61 @@ static int hero_duck_button() {
   return 0;
 }
 
+/* Commit inversion.
+ */
+ 
+static void hero_commit_inversion(struct sprite *sprite) {
+  double dx=SPRITE->pushing,dy=0.0;
+  deltaf_plus_gravity(&dx,&dy);
+  sprite->x+=dx;
+  sprite->y+=dy;
+  sprite->xform^=EGG_XFORM_XREV;
+  sprite->pass_physics^=1;
+  SPRITE->invert_cooldown=1;
+}
+
+/* Check the wall for pushing.
+ */
+ 
+static int hero_valid_wall(struct sprite *sprite,int d) {
+  if (!SPRITE->seated) return 0; // No inversion without terra firma.
+  int dx=d,dy=0;
+  deltai_plus_gravity(&dx,&dy);
+  int ax=(int)sprite->x+dx;
+  int ay=(int)sprite->y+dy;
+  if ((ax<0)||(ay<0)||(ax>=NS_sys_mapw)||(ay>=NS_sys_maph)) return 0; // Don't invert across the wraparound. We'll design maps such that it's not possible anyway.
+  dx=0;
+  dy=-1;
+  deltai_plus_gravity(&dx,&dy);
+  int bx=ax+dx;
+  int by=ay+dy;
+  if ((bx<0)||(by<0)||(bx>=NS_sys_mapw)||(by>=NS_sys_maph)) return 0;
+  // Both physics must be solid or vacant, whichever is not my passable.
+  // No inverting into the goal!
+  uint8_t aph=g.map[ay*NS_sys_mapw+ax];
+  uint8_t bph=g.map[by*NS_sys_mapw+bx];
+  if (sprite->pass_physics==NS_physics_vacant) {
+    if (aph!=NS_physics_solid) return 0;
+    if (bph!=NS_physics_solid) return 0;
+  } else {
+    if (aph!=NS_physics_vacant) return 0;
+    if (bph!=NS_physics_vacant) return 0;
+  }
+  // Finally, confirm that no collision exists there against other solid sprites.
+  // We should use the hero's hitbox for this, but it's simpler to construct an exact 1x2 hitbox.
+  struct aabb hitbox;
+  if (ax<bx) { hitbox.l=ax; hitbox.r=bx+1.0; }
+  else { hitbox.l=bx; hitbox.r=ax+1.0; }
+  if (ay<by) { hitbox.t=ay; hitbox.b=by+1.0; }
+  else { hitbox.t=by; hitbox.b=ay+1.0; }
+  struct collision coll;
+  sprite->pass_physics^=1;
+  int collided=sprite_detect_collisions(&coll,1,&hitbox,sprite);
+  sprite->pass_physics^=1;
+  if (collided) return 0;
+  return 1;
+}
+
 /* Walking.
  */
  
@@ -76,7 +134,23 @@ static void hero_walk(struct sprite *sprite,int d,double elapsed) {
   double dx=(d<0)?-1.0:1.0,dy=0.0;
   dx*=elapsed*WALK_SPEED;
   deltaf_plus_gravity(&dx,&dy);
-  sprite_move(sprite,dx,dy);
+  if (!sprite_move(sprite,dx,dy)) {
+    if (hero_valid_wall(sprite,d)) {
+      if (SPRITE->pushing!=d) {
+        SPRITE->pushing=d;
+        SPRITE->animclock=0.0;
+        SPRITE->animframe=0;
+      }
+      SPRITE->animclock+=elapsed;
+      if (SPRITE->animclock>=INVERT_ANIMTIME) {
+        SPRITE->animclock-=INVERT_ANIMTIME;
+        if (++(SPRITE->animframe)>=4) {
+          hero_commit_inversion(sprite);
+        }
+      }
+      return;
+    }
+  }
   
   if ((SPRITE->animclock-=elapsed)<=0.0) {
     SPRITE->animclock+=0.150;
@@ -88,6 +162,7 @@ static void hero_walk_end(struct sprite *sprite) {
   SPRITE->walking=0;
   SPRITE->animclock=0.0;
   SPRITE->animframe=0;
+  SPRITE->pushing=0;
 }
 
 /* Flip. Call this as we reverse gravity, with (g.gravity) still in the original orientation.
@@ -372,6 +447,18 @@ static void hero_duck_begin(struct sprite *sprite) {
  
 static void _hero_update(struct sprite *sprite,double elapsed) {
 
+  // Inversion cooldown suppresses all else, even (especially!) gravity.
+  if (SPRITE->invert_cooldown) {
+    if ((SPRITE->animclock+=elapsed)>=INVERT_ANIMTIME) {
+      SPRITE->animclock-=INVERT_ANIMTIME;
+      if (--(SPRITE->animframe)<0) {
+        SPRITE->invert_cooldown=0;
+        SPRITE->pushing=0;
+      }
+    }
+    return;
+  }
+
   // Walking.
   if (!SPRITE->ducking) {
     if (SPRITE->walk_cooldown>0.0) {
@@ -427,7 +514,10 @@ static void _hero_render(struct sprite *sprite,int x,int y) {
   uint8_t tileid=sprite->tileid;
   uint8_t xform=xform_plus_gravity(sprite->xform);
   //TODO dead hat animation
-  if (SPRITE->ducking) {
+  if (SPRITE->pushing) {
+    if (SPRITE->animframe>=4) return; // Briefly invisible.
+    tileid+=5+SPRITE->animframe;
+  } else if (SPRITE->ducking) {
     tileid+=9;
   } else if (SPRITE->jumping) {
     tileid+=3;
@@ -438,7 +528,7 @@ static void _hero_render(struct sprite *sprite,int x,int y) {
       case 1: tileid+=1; break;
       case 3: tileid+=2; break;
     }
-  } //TODO wall press
+  }
   
   graf_tile(&g.graf,x,y,tileid,xform);
   int headdx=0,headdy=-NS_sys_tilesize;
