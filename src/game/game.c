@@ -122,26 +122,35 @@ void game_reset(int mapid) {
     return;
   }
   memcpy(g.map,rmap.v,NS_sys_mapw*NS_sys_maph);
+  g.mapid=mapid;
+  
+  sprites_kill_all();
+  g.gravity=0x02;
   
   struct cmdlist_reader reader={.v=rmap.cmd,.c=rmap.cmdc};
   struct cmdlist_entry cmd;
   while (cmdlist_reader_next(&cmd,&reader)>0) {
     switch (cmd.opcode) {
-      //TODO?
+    
+      case CMD_map_sprite: {
+          double x=cmd.arg[0]+0.5;
+          double y=cmd.arg[1]+0.5;
+          int rid=(cmd.arg[2]<<8)|cmd.arg[3];
+          const uint8_t *arg=cmd.arg+4;
+          struct sprite *sprite=sprite_spawn(x,y,rid,arg,0,0,0);
+        } break;
     }
   }
   
   bgbits_render();
-  
-  //TODO Refresh sprites.
-  fprintf(stderr,"loaded map:%d ok\n",mapid);
 }
 
 /* Update.
  */
  
 void game_update(double elapsed) {
-  //TODO
+  sprites_update(elapsed);
+  //TODO Terminal conditions, next map, etc.
 }
 
 /* Render.
@@ -150,8 +159,5 @@ void game_update(double elapsed) {
 void game_render() {
   graf_set_input(&g.graf,g.texid_bgbits);
   graf_decal(&g.graf,0,0,0,0,FBW,FBH);
-  graf_set_input(&g.graf,g.texid_tiles);
-  //TODO sprites
-  graf_tile(&g.graf,40,84,0x20,0);
-  graf_tile(&g.graf,40,76,0x10,0);
+  sprites_render();
 }

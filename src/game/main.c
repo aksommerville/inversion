@@ -25,6 +25,7 @@ int egg_client_init() {
   while (rom_reader_next(&res,&reader)>0) {
     switch (res.tid) {
       case EGG_TID_map:
+      case EGG_TID_sprite:
         {
           if (g.resc>=g.resa) {
             int na=g.resa+32;

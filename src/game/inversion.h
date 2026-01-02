@@ -9,6 +9,7 @@
 #include "util/text/text.h"
 #include "egg_res_toc.h"
 #include "shared_symbols.h"
+#include "sprite.h"
 
 #define FBW 160
 #define FBH 96
@@ -23,9 +24,13 @@ extern struct g {
   int texid_bgbits;
   int input,pvinput;
   uint8_t map[NS_sys_mapw*NS_sys_maph]; // NS_physics_*, NB not tiles.
+  int mapid;
+  struct sprite **spritev;
+  int spritec,spritea;
+  uint8_t gravity; // Cardinal bit: (0x40,0x10,0x08,0x02)=(N,W,E,S)
 } g;
 
-void game_reset(int mapid);
+void game_reset(int mapid); // Do not call during sprite updates!
 void game_update(double elapsed);
 void game_render();
 
