@@ -5,7 +5,7 @@
 #ifndef SHARED_SYMBOLS_H
 #define SHARED_SYMBOLS_H
 
-#define EGGDEV_importUtil "res,font,text,graf,stdlib" /* Comma-delimited list of Egg 'util' units to include in the build. */
+#define EGGDEV_importUtil "res,graf,stdlib" /* Comma-delimited list of Egg 'util' units to include in the build. */
 #define EGGDEV_ignoreData "" /* Comma-delimited glob patterns for editor and builder to ignore under src/data/ */
 
 #define NS_sys_tilesize 8

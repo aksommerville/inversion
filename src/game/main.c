@@ -17,7 +17,6 @@ int egg_client_init() {
   g.romc=egg_rom_get(0,0);
   if (!(g.rom=malloc(g.romc))) return -1;
   egg_rom_get(g.rom,g.romc);
-  text_set_rom(g.rom,g.romc);
   
   struct rom_reader reader;
   if (rom_reader_init(&reader,g.rom,g.romc)<0) return -1;
