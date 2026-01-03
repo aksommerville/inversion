@@ -7,7 +7,7 @@
 #define GRAVITY_ACCEL  30.0 /* m/s**2 */
 #define DUCK_CONFIRM_TIME  0.500
 #define WALK_COOLDOWN_TIME 0.150
-#define INVERT_ANIMTIME 0.150
+#define INVERT_ANIMTIME 0.100
 
 struct sprite_hero {
   struct sprite hdr;
@@ -39,6 +39,14 @@ struct sprite_hero {
  
 static int _hero_init(struct sprite *sprite) {
   SPRITE->seated=1;
+  
+  // We normally start on blue, and we're good to go in that case. But green is cool too.
+  int x=(int)sprite->x;
+  int y=(int)sprite->y;
+  if ((x>=0)&&(y>=0)&&(x<NS_sys_mapw)&&(y<NS_sys_maph)) {
+    sprite->pass_physics=g.map[y*NS_sys_mapw+x];
+  }
+  
   return 0;
 }
 

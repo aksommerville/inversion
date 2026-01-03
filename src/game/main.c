@@ -75,7 +75,7 @@ void egg_client_render() {
 /* Resources.
  */
 
-int res_get(void *dstpp,int tid,int rid) {
+int res_search(int tid,int rid) {
   int lo=0,hi=g.resc;
   while (lo<hi) {
     int ck=(lo+hi)>>1;
@@ -84,12 +84,17 @@ int res_get(void *dstpp,int tid,int rid) {
     else if (tid>res->tid) lo=ck+1;
     else if (rid<res->rid) hi=ck;
     else if (rid>res->rid) lo=ck+1;
-    else {
-      *(const void**)dstpp=res->v;
-      return res->c;
-    }
+    else return ck;
   }
-  return 0;
+  return -lo-1;
+}
+
+int res_get(void *dstpp,int tid,int rid) {
+  int p=res_search(tid,rid);
+  if (p<0) return 0;
+  const struct rom_entry *res=g.resv+p;
+  *(const void**)dstpp=res->v;
+  return res->c;
 }
 
 /* Sound.

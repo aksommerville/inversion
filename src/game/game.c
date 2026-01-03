@@ -122,8 +122,20 @@ static void bgbits_render() {
  
 int game_reset(int mapid) {
 
+  int actual_mapid=mapid;
+  #if 1 /* XXX TEMP, run maps backward during dev. */
+    int resp=res_search(EGG_TID_map+1,0);
+    if (resp<0) resp=-resp-1;
+    if (resp>0) {
+      resp--;
+      int mapidz=g.resv[resp].rid;
+      actual_mapid=mapidz-mapid+1;
+      fprintf(stderr,"!!! REVERSED MAPS !!! Using map:%d in place of map:%d.\n",actual_mapid,mapid);
+    }
+  #endif
+
   const void *serial=0;
-  int serialc=res_get(&serial,EGG_TID_map,mapid);
+  int serialc=res_get(&serial,EGG_TID_map,actual_mapid);
   if (serialc<1) {
     fprintf(stderr,"map:%d not found\n",mapid);
     return -1;

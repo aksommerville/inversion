@@ -43,6 +43,7 @@ int game_reset(int mapid); // Do not call during sprite updates!
 void game_update(double elapsed);
 void game_render();
 
+int res_search(int tid,int rid);
 int res_get(void *dstpp,int tid,int rid);
 
 void inv_sound(int rid);
