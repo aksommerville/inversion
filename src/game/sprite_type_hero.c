@@ -85,6 +85,7 @@ static void hero_commit_inversion(struct sprite *sprite) {
   sprite->pass_physics^=1;
   SPRITE->invert_cooldown=1;
   inv_song_lead(sprite->pass_physics);
+  inv_sound(RID_sound_invert);
 }
 
 /* Check the wall for pushing.
@@ -253,10 +254,11 @@ static void hero_gravity_update(struct sprite *sprite,double elapsed) {
   double dx=0.0,dy=SPRITE->gravity*elapsed;
   deltaf_plus_gravity(&dx,&dy);
   if (!sprite_move(sprite,dx,dy)) {
-    SPRITE->gravity=0.0;
     if (!SPRITE->seated) {
+      if (SPRITE->gravity>=5.0) inv_sound(RID_sound_land);
       SPRITE->seated=1;
     }
+    SPRITE->gravity=0.0;
   } else {
     if (SPRITE->seated) {
       SPRITE->seated=0;
@@ -339,6 +341,7 @@ static void hero_duck_commit(struct sprite *sprite) {
     return;
   }
   
+  inv_sound(RID_sound_rotate);
   SPRITE->ducking=0; // You'd think we need a blackout but nope! Since we're changing gravity's direction, the duck button changes.
   SPRITE->walk_cooldown=WALK_COOLDOWN_TIME;
   sprite->x=nx;
@@ -363,6 +366,7 @@ static void hero_duck_update(struct sprite *sprite,double elapsed) {
 
 static void hero_duck_begin(struct sprite *sprite) {
 
+  inv_sound(RID_sound_duck);
   SPRITE->ducking=1;
   SPRITE->animclock=0.0;
   SPRITE->animframe=0;
@@ -561,6 +565,7 @@ static void _hero_update(struct sprite *sprite,double elapsed) {
  
 static void _hero_hurt(struct sprite *sprite,struct sprite *assailant) {
   if (SPRITE->dead) return; // Once was plenty, thanks.
+  inv_sound(RID_sound_hurt);
   SPRITE->dead=1;
   SPRITE->animclock=0.200;
   SPRITE->animframe=0;

@@ -19,7 +19,7 @@ Single-screen platformer where you can change the environment three ways:
 - [x] Hazards.
 - [ ] Almost impossible to enter a 1-meter horizontal gap. Should we account for that in the hero's hitbox? Or just avoid in design?
 - [x] Render bgbits: OOB are currently "same as me", they need to be "clamp to nearest". Visible in corridors touching the edge.
-- [ ] Sound effects.
+- [x] Sound effects.
 - [x] Music.
 - [ ] Include some kind of Reset option. I won't be able to guarantee that all positions are escapable.
 - [ ] Revise graphics. I've been inconsistent about outlines, and not sure what I prefer.
