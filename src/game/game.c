@@ -122,6 +122,8 @@ static void bgbits_render() {
  
 int game_reset(int mapid) {
 
+  inv_song(RID_song_inversion);
+
   int actual_mapid=mapid;
   #if 1 /* XXX TEMP, run maps backward during dev. */
     int resp=res_search(EGG_TID_map+1,0);

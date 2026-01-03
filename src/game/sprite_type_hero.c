@@ -45,6 +45,7 @@ static int _hero_init(struct sprite *sprite) {
   int y=(int)sprite->y;
   if ((x>=0)&&(y>=0)&&(x<NS_sys_mapw)&&(y<NS_sys_maph)) {
     sprite->pass_physics=g.map[y*NS_sys_mapw+x];
+    inv_song_lead(sprite->pass_physics);
   }
   
   return 0;
@@ -83,6 +84,7 @@ static void hero_commit_inversion(struct sprite *sprite) {
   sprite->xform^=EGG_XFORM_XREV;
   sprite->pass_physics^=1;
   SPRITE->invert_cooldown=1;
+  inv_song_lead(sprite->pass_physics);
 }
 
 /* Check the wall for pushing.

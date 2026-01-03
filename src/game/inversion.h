@@ -37,6 +37,7 @@ extern struct g {
   double goalclock;
   double fadeinclock;
   double deadclock;
+  uint8_t song_lead; // NS_physics_vacant or NS_physics_solid, whichever is passable to the hero.
 } g;
 
 int game_reset(int mapid); // Do not call during sprite updates!
@@ -48,6 +49,7 @@ int res_get(void *dstpp,int tid,int rid);
 
 void inv_sound(int rid);
 void inv_song(int rid);
+void inv_song_lead(uint8_t lead);
 
 void gravity_reverse();
 void gravity_rotate(int d); // <0=deasil, >0=clockwise

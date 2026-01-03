@@ -108,4 +108,27 @@ void inv_song(int rid) {
   if (rid==g.song_playing) return;
   g.song_playing=rid;
   egg_play_song(1,rid,1,1.0f,0.0f);
+  if (g.song_playing==RID_song_inversion) {
+    if (g.song_lead==NS_physics_vacant) {
+      egg_song_set(1,1,EGG_SONG_PROP_TRIM,0.400f);
+      egg_song_set(1,2,EGG_SONG_PROP_TRIM,0.0f);
+    } else {
+      egg_song_set(1,1,EGG_SONG_PROP_TRIM,0.0f);
+      egg_song_set(1,2,EGG_SONG_PROP_TRIM,0.400f);
+    }
+  }
+}
+
+void inv_song_lead(uint8_t lead) {
+  if (lead==g.song_lead) return;
+  g.song_lead=lead;
+  if (g.song_playing==RID_song_inversion) {
+    if (g.song_lead==NS_physics_vacant) {
+      egg_song_set(1,1,EGG_SONG_PROP_TRIM,0.400f);
+      egg_song_set(1,2,EGG_SONG_PROP_TRIM,0.0f);
+    } else {
+      egg_song_set(1,1,EGG_SONG_PROP_TRIM,0.0f);
+      egg_song_set(1,2,EGG_SONG_PROP_TRIM,0.400f);
+    }
+  }
 }
