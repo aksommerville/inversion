@@ -1,5 +1,15 @@
 #include "inversion.h"
 
+/* Nonzero if these two tiles are the same, for neighbor-joining purposes.
+ */
+ 
+static int sametile(uint8_t a,uint8_t b) {
+  if (a==NS_physics_vacant) {
+    if (b==NS_physics_goal) return 1; // Vacant doesn't recognize goal. (NOT vice-versa).
+  }
+  return (a==b);
+}
+
 /* Rewrite bgbits.
  * (g.map) is ready.
  */
@@ -12,17 +22,20 @@ static void draw_tile(int dstx,int dsty,const uint8_t *src,int col,int row) {
     return;
   }
   
-  // Collect the neighbor mask. OOB clamps, it doesn't wrap.
-  // Logically, it should wrap, but we'll design with matching edges to avoid the issue.
+  // Collect neighbor mask.
+  int lx=col-1; if (lx<0) lx+=NS_sys_mapw;
+  int rx=col+1; if (rx>=NS_sys_mapw) rx-=NS_sys_mapw;
+  int ty=row-1; if (ty<0) ty+=NS_sys_maph;
+  int by=row+1; if (by>=NS_sys_maph) by-=NS_sys_maph;
   uint8_t neighbors=0;
-  if ((row<=0)||(col<=0)||(src[0]==src[-NS_sys_mapw-1])) neighbors|=0x80;
-  if ((row<=0)||(src[0]==src[-NS_sys_mapw])) neighbors|=0x40;
-  if ((row<=0)||(col>=NS_sys_mapw-1)||(src[0]==src[-NS_sys_mapw+1])) neighbors|=0x20;
-  if ((col<=0)||(src[0]==src[-1])) neighbors|=0x10;
-  if ((col>=NS_sys_mapw-1)||(src[0]==src[1])) neighbors|=0x08;
-  if ((row>=NS_sys_maph-1)||(col<=0)||(src[0]==src[NS_sys_mapw-1])) neighbors|=0x04;
-  if ((row>=NS_sys_maph-1)||(src[0]==src[NS_sys_mapw])) neighbors|=0x02;
-  if ((row>=NS_sys_maph-1)||(col>=NS_sys_mapw-1)||(src[0]==src[NS_sys_mapw+1])) neighbors|=0x01;
+  if (sametile(*src,g.map[ty*NS_sys_mapw+lx])) neighbors|=0x80;
+  if (sametile(*src,g.map[ty*NS_sys_mapw+col])) neighbors|=0x40;
+  if (sametile(*src,g.map[ty*NS_sys_mapw+rx])) neighbors|=0x20;
+  if (sametile(*src,g.map[row*NS_sys_mapw+lx])) neighbors|=0x10;
+  if (sametile(*src,g.map[row*NS_sys_mapw+rx])) neighbors|=0x08;
+  if (sametile(*src,g.map[by*NS_sys_mapw+lx])) neighbors|=0x04;
+  if (sametile(*src,g.map[by*NS_sys_mapw+col])) neighbors|=0x02;
+  if (sametile(*src,g.map[by*NS_sys_mapw+rx])) neighbors|=0x01;
   
   // Each of the special tiles in the top row kind of does its own thing.
   switch (*src) {
@@ -107,25 +120,27 @@ static void bgbits_render() {
 /* Reset.
  */
  
-void game_reset(int mapid) {
+int game_reset(int mapid) {
 
   const void *serial=0;
   int serialc=res_get(&serial,EGG_TID_map,mapid);
   if (serialc<1) {
     fprintf(stderr,"map:%d not found\n",mapid);
-    return;
+    return -1;
   }
   struct map_res rmap;
-  if (map_res_decode(&rmap,serial,serialc)<0) return;
+  if (map_res_decode(&rmap,serial,serialc)<0) return -1;
   if ((rmap.w!=NS_sys_mapw)||(rmap.h!=NS_sys_maph)) {
     fprintf(stderr,"map:%d: expected %dx%d, found %dx%d\n",mapid,NS_sys_mapw,NS_sys_maph,rmap.w,rmap.h);
-    return;
+    return -1;
   }
   memcpy(g.map,rmap.v,NS_sys_mapw*NS_sys_maph);
   g.mapid=mapid;
   
   sprites_kill_all();
   g.gravity=0x02;
+  g.fadeinclock=FADE_IN_TIME;
+  g.goalclock=0.0;
   
   struct cmdlist_reader reader={.v=rmap.cmd,.c=rmap.cmdc};
   struct cmdlist_entry cmd;
@@ -143,14 +158,28 @@ void game_reset(int mapid) {
   }
   
   bgbits_render();
+  return 0;
 }
 
 /* Update.
  */
  
 void game_update(double elapsed) {
+  g.on_goal=0;
   sprites_update(elapsed);
-  //TODO Terminal conditions, next map, etc.
+  if (g.fadeinclock>0.0) {
+    g.fadeinclock-=elapsed;
+  } else if (g.on_goal) {
+    if (g.goalclock<=0.0) g.goalclock=FADE_OUT_TIME;
+    if ((g.goalclock-=elapsed)<=0.0) {
+      if (game_reset(g.mapid+1)<0) {
+        fprintf(stderr,"GAME OVER, YOU WIN!\n");//TODO Game-over modal.
+        game_reset(1);
+      }
+    }
+  } else {
+    g.goalclock=0.0;
+  }
 }
 
 /* Render.
@@ -160,6 +189,14 @@ void game_render() {
   graf_set_input(&g.graf,g.texid_bgbits);
   graf_decal(&g.graf,0,0,0,0,FBW,FBH);
   sprites_render();
+  
+  int alpha=0;
+  if (g.goalclock>0.0) alpha=0xff-(int)((g.goalclock*255.0)/FADE_OUT_TIME);
+  else if (g.fadeinclock>0.0) alpha=(int)((g.fadeinclock*255.0)/FADE_IN_TIME);
+  if (alpha>0) {
+    if (alpha>0xff) alpha=0xff;
+    graf_fill_rect(&g.graf,0,0,FBW,FBH,0x00000000|alpha);
+  }
 }
 
 /* Gravity.

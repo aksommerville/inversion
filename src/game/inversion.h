@@ -14,6 +14,9 @@
 #define FBW 160
 #define FBH 96
 
+#define FADE_OUT_TIME 0.333
+#define FADE_IN_TIME  0.333
+
 extern struct g {
   void *rom;
   int romc;
@@ -29,9 +32,12 @@ extern struct g {
   int spritec,spritea;
   uint8_t gravity; // Cardinal bit: (0x40,0x10,0x08,0x02)=(N,W,E,S)
   int song_playing;
+  int on_goal; // Global layer clears, hero sets, global checks at the end of each frame.
+  double goalclock;
+  double fadeinclock;
 } g;
 
-void game_reset(int mapid); // Do not call during sprite updates!
+int game_reset(int mapid); // Do not call during sprite updates!
 void game_update(double elapsed);
 void game_render();
 

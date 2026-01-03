@@ -228,6 +228,7 @@ static void hero_jump_begin(struct sprite *sprite,double elapsed) {
   SPRITE->jumping=1;
   SPRITE->jump_blackout=1;
   SPRITE->seated=0;
+  SPRITE->pushing=0;
   SPRITE->gravity=0.0;
   SPRITE->jumpdx=0.0;
   SPRITE->jumpdy=-JUMP_POWER_MAX;
@@ -442,6 +443,33 @@ static void hero_duck_begin(struct sprite *sprite) {
   }
 }
 
+/* Set (g.on_goal) if I'm standing on the goal.
+ * Clearing it is not my problem.
+ */
+ 
+static void hero_check_goal(const struct sprite *sprite) {
+  if (!SPRITE->seated) return;
+  
+  // Determine affected cells. Don't worry about wrapping -- goals won't touch the edges.
+  double dya=1.0,dyz=1.0,dxa=sprite->hbl,dxz=sprite->hbr;
+  deltaf_plus_gravity(&dxa,&dya);
+  deltaf_plus_gravity(&dxz,&dyz);
+  int xa=(int)(sprite->x+dxa); if (xa<0) xa=0; else if (xa>=NS_sys_mapw) xa=NS_sys_mapw-1;
+  int xz=(int)(sprite->x+dxz); if (xz<0) xz=0; else if (xz>=NS_sys_mapw) xz=NS_sys_mapw-1;
+  int ya=(int)(sprite->y+dya); if (ya<0) ya=0; else if (ya>=NS_sys_maph) ya=NS_sys_maph-1;
+  int yz=(int)(sprite->y+dyz); if (yz<0) yz=0; else if (ya>=NS_sys_maph) ya=NS_sys_maph-1;
+  
+  // (xa,ya)..(xz,yz) should be a straight line. Advance whichever axis doesn't match. Any goal tile means the answer is Yes.
+  for (;;) {
+    uint8_t physics=g.map[ya*NS_sys_mapw+xa];
+    if (physics==NS_physics_goal) { g.on_goal=1; return; }
+    int xok=0,yok=0;
+    if (xa<xz) xa++; else if (xa>xz) xa--; else xok=1;
+    if (ya<yz) ya++; else if (ya>yz) ya--; else yok=1;
+    if (xok&&yok) return;
+  }
+}
+
 /* Update.
  */
  
@@ -504,6 +532,7 @@ static void _hero_update(struct sprite *sprite,double elapsed) {
   }
   
   sprite_force_ib(sprite);
+  hero_check_goal(sprite);
 }
 
 /* Render.
