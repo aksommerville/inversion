@@ -16,7 +16,7 @@ Single-screen platformer where you can change the environment three ways:
 - [x] Wall inversion.
 - [x] Goal.
 - [x] Gravity feels a bit floaty. Tighten up.
-- [ ] Hazards.
+- [x] Hazards.
 - [ ] Almost impossible to enter a 1-meter horizontal gap. Should we account for that in the hero's hitbox? Or just avoid in design?
 - [x] Render bgbits: OOB are currently "same as me", they need to be "clamp to nearest". Visible in corridors touching the edge.
 - [ ] Sound effects.

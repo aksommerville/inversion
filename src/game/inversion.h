@@ -16,6 +16,7 @@
 
 #define FADE_OUT_TIME 0.333
 #define FADE_IN_TIME  0.333
+#define DEAD_TIME     2.000
 
 extern struct g {
   void *rom;
@@ -35,6 +36,7 @@ extern struct g {
   int on_goal; // Global layer clears, hero sets, global checks at the end of each frame.
   double goalclock;
   double fadeinclock;
+  double deadclock;
 } g;
 
 int game_reset(int mapid); // Do not call during sprite updates!

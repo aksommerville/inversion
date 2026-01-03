@@ -141,6 +141,7 @@ int game_reset(int mapid) {
   g.gravity=0x02;
   g.fadeinclock=FADE_IN_TIME;
   g.goalclock=0.0;
+  g.deadclock=0.0;
   
   struct cmdlist_reader reader={.v=rmap.cmd,.c=rmap.cmdc};
   struct cmdlist_entry cmd;
@@ -167,7 +168,11 @@ int game_reset(int mapid) {
 void game_update(double elapsed) {
   g.on_goal=0;
   sprites_update(elapsed);
-  if (g.fadeinclock>0.0) {
+  if (g.deadclock>0.0) {
+    if ((g.deadclock-=elapsed)<=0.0) {
+      game_reset(g.mapid);
+    }
+  } else if (g.fadeinclock>0.0) {
     g.fadeinclock-=elapsed;
   } else if (g.on_goal) {
     if (g.goalclock<=0.0) g.goalclock=FADE_OUT_TIME;
@@ -191,7 +196,8 @@ void game_render() {
   sprites_render();
   
   int alpha=0;
-  if (g.goalclock>0.0) alpha=0xff-(int)((g.goalclock*255.0)/FADE_OUT_TIME);
+  if (g.deadclock>0.0) alpha=0xff-(int)((g.deadclock*255.0)/FADE_OUT_TIME);
+  else if (g.goalclock>0.0) alpha=0xff-(int)((g.goalclock*255.0)/FADE_OUT_TIME);
   else if (g.fadeinclock>0.0) alpha=(int)((g.fadeinclock*255.0)/FADE_IN_TIME);
   if (alpha>0) {
     if (alpha>0xff) alpha=0xff;

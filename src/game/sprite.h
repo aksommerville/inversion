@@ -29,6 +29,8 @@ struct sprite_type {
    * If you do anything raw or a different image, restore RID_image_tiles before returning.
    */
   void (*render)(struct sprite *sprite,int x,int y);
+  
+  void (*hurt)(struct sprite *sprite,struct sprite *assailant);
 };
 
 struct sprite *sprite_spawn(

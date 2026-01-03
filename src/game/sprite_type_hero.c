@@ -29,6 +29,7 @@ struct sprite_hero {
   int duckcx,duckcy,duckox,duckoy;
   double walk_cooldown; // Counts down immediately after a rotation, since the duck button is now a walk button.
   int invert_cooldown; // Timing driven by (animclock,animframe)
+  int dead;
 };
 
 #define SPRITE ((struct sprite_hero*)sprite)
@@ -475,6 +476,16 @@ static void hero_check_goal(const struct sprite *sprite) {
  
 static void _hero_update(struct sprite *sprite,double elapsed) {
 
+  // Just like real life, when dead, we don't do much. Notably, gravity does keep happening.
+  if (SPRITE->dead) {
+    if ((SPRITE->animclock-=elapsed)<=0.0) {
+      SPRITE->animclock+=0.100;
+      if (++(SPRITE->animframe)>5) SPRITE->animframe=5;
+    }
+    hero_gravity_update(sprite,elapsed);
+    return;
+  }
+
   // Inversion cooldown suppresses all else, even (especially!) gravity.
   if (SPRITE->invert_cooldown) {
     if ((SPRITE->animclock+=elapsed)>=INVERT_ANIMTIME) {
@@ -535,6 +546,17 @@ static void _hero_update(struct sprite *sprite,double elapsed) {
   hero_check_goal(sprite);
 }
 
+/* Hurt.
+ */
+ 
+static void _hero_hurt(struct sprite *sprite,struct sprite *assailant) {
+  if (SPRITE->dead) return; // Once was plenty, thanks.
+  SPRITE->dead=1;
+  SPRITE->animclock=0.200;
+  SPRITE->animframe=0;
+  g.deadclock=DEAD_TIME;
+}
+
 /* Render.
  */
  
@@ -542,8 +564,9 @@ static void _hero_render(struct sprite *sprite,int x,int y) {
 
   uint8_t tileid=sprite->tileid;
   uint8_t xform=xform_plus_gravity(sprite->xform);
-  //TODO dead hat animation
-  if (SPRITE->pushing) {
+  if (SPRITE->dead) {
+    tileid+=10+SPRITE->animframe;
+  } else if (SPRITE->pushing) {
     if (SPRITE->animframe>=4) return; // Briefly invisible.
     tileid+=5+SPRITE->animframe;
   } else if (SPRITE->ducking) {
@@ -563,6 +586,7 @@ static void _hero_render(struct sprite *sprite,int x,int y) {
   int headdx=0,headdy=-NS_sys_tilesize;
   deltai_plus_gravity(&headdx,&headdy);
   graf_tile(&g.graf,x+headdx,y+headdy,tileid-0x10,xform);
+  if (SPRITE->dead) return;
   
   if (SPRITE->ducking) {
     graf_tile(&g.graf,SPRITE->ducksignx,SPRITE->ducksigny,SPRITE->ducksigntileid+SPRITE->animframe,SPRITE->ducksignxform);
@@ -578,4 +602,5 @@ const struct sprite_type sprite_type_hero={
   .init=_hero_init,
   .update=_hero_update,
   .render=_hero_render,
+  .hurt=_hero_hurt,
 };

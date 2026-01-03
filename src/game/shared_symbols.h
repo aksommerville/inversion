@@ -36,12 +36,14 @@
 
 // Editor uses the comment after a 'sprtype' symbol as a prompt in the new-sprite modal.
 // Should match everything after 'spriteid' in the CMD_map_sprite args.
-#define NS_sprtype_dummy 0 /* (u32)0 */
-#define NS_sprtype_hero  1 /* (u32)0 */
-#define NS_sprtype_slug  2 /* (u32)0 */
+#define NS_sprtype_dummy    0 /* (u32)0 */
+#define NS_sprtype_hero     1 /* (u32)0 */
+#define NS_sprtype_slug     2 /* (u32)0 */
+#define NS_sprtype_killozap 3 /* (u8:dir)0x02 (u8:frames)60 (u8:duty)0x80 (u8:phase)0x00 */
 #define FOR_EACH_SPRTYPE \
   _(dummy) \
   _(hero) \
-  _(slug)
+  _(slug) \
+  _(killozap)
 
 #endif

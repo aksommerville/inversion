@@ -15,3 +15,5 @@ image image:tiles
 sprite @15,10 sprite:hero (u32)0
 sprite @10,4 sprite:box (u32)0
 sprite @6,10 sprite:box (u32)0
+sprite @4,10 sprite:killozap (u8:dir)0x08 (u8:frames)60 (u8:duty)0x80 (u8:phase)0x00
+sprite @11,10 sprite:killozap (u8:dir)0x10 (u8:frames)60 (u8:duty)0x80 (u8:phase)0x00
