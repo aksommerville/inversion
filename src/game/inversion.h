@@ -47,6 +47,11 @@ extern struct g {
   struct hello hello;
   struct gameover gameover;
   struct pause pause;
+  
+  double playtime;
+  int deathc;
+  int skipc;
+  char hiscore[6]; // zero if none, otherwise 6 decimal digits. Valid scores will be in 100000..999999, don't worry about leading zeroes.
 } g;
 
 int game_reset(int mapid); // Do not call during sprite updates!

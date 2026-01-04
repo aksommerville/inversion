@@ -30,6 +30,8 @@ struct label_list {
  */
 struct label *label_new(struct label_list *list,const char *src,int srcc,uint32_t rgba,int id);
 
+void label_list_clear(struct label_list *list);
+
 void label_list_center_all(struct label_list *list);
 
 void label_list_render(struct label_list *list);
@@ -55,6 +57,13 @@ void hello_render();
  
 struct gameover {
   int active;
+  char score[6];
+  int new_high_score;
+  char msg[32];
+  int msgc;
+  struct label_list labels;
+  double blink_clock;
+  struct label *blink_label;
 };
 
 void gameover_end();

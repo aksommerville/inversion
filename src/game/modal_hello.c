@@ -15,8 +15,11 @@ void hello_end() {
  */
  
 static int hello_generate_high_score(char *dst,int dsta) {
-  //TODO
-  return 0;
+  if (!g.hiscore[0]) return 0;
+  if (dsta<12) return 0;
+  memcpy(dst,"Best: ",6);
+  memcpy(dst+6,g.hiscore,6);
+  return 12;
 }
 
 /* Begin.
@@ -29,24 +32,24 @@ void hello_begin() {
   g.hello.transitionclock=0.0;
   g.hello.hsc=hello_generate_high_score(g.hello.hs,sizeof(g.hello.hs));
   
-  if (!g.hello.labels.c) {
-    struct label *label;
-    if (label=label_new(&g.hello.labels,"By AK Sommerville",-1,0x202040ff,0)) {
-      label->y=47;
-      label->x=(FBW>>1)-(label->srcc*4);
-    }
-    if (label=label_new(&g.hello.labels,"January 2026",-1,0x202040ff,0)) {
-      label->y=57;
-      label->x=(FBW>>1)-(label->srcc*4);
-    }
-    if (label=label_new(&g.hello.labels,"Uplifting Jam #6",-1,0x202040ff,0)) {
-      label->y=67;
-      label->x=(FBW>>1)-(label->srcc*4);
-    }
-    if (label=label_new(&g.hello.labels,g.hello.hs,g.hello.hsc,0x000000ff,0)) {
-      label->y=85;
-      label->x=(FBW>>1)-(label->srcc*4);
-    }
+  // Generate labels from scratch each time, in case high score changed.
+  label_list_clear(&g.hello.labels);
+  struct label *label;
+  if (label=label_new(&g.hello.labels,"By AK Sommerville",-1,0x202040ff,0)) {
+    label->y=47;
+    label->x=(FBW>>1)-(label->srcc*4)+4;
+  }
+  if (label=label_new(&g.hello.labels,"January 2026",-1,0x202040ff,0)) {
+    label->y=57;
+    label->x=(FBW>>1)-(label->srcc*4)+4;
+  }
+  if (label=label_new(&g.hello.labels,"Uplifting Jam #6",-1,0x202040ff,0)) {
+    label->y=67;
+    label->x=(FBW>>1)-(label->srcc*4)+4;
+  }
+  if (label=label_new(&g.hello.labels,g.hello.hs,g.hello.hsc,0x000000ff,0)) {
+    label->y=85;
+    label->x=(FBW>>1)-(label->srcc*4)+4;
   }
 }
 
@@ -55,6 +58,9 @@ void hello_begin() {
  
 static void hello_dismiss() {
   g.hello.transitionclock=TRANSITION_TIME;
+  g.playtime=0.0;
+  g.deathc=0;
+  g.skipc=0;
   game_reset(1);
   game_no_fade_in();
 }

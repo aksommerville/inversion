@@ -26,9 +26,10 @@ Single-screen platformer where you can change the environment three ways:
 - [ ] Revise graphics. I've been inconsistent about outlines, and not sure what I prefer.
 - - Also, we need more flair all around. Not sure what specifically.
 - [ ] Visual fireworks. Dust on landing (+sound effect?). Some kind of "kapow" on gravity changes...
+- [ ] Music for gameover.
 - [x] Hello modal.
-- [ ] Gameover modal.
-- [ ] Scorekeeping. Update modal_hello to display.
+- [x] Gameover modal.
+- [x] Scorekeeping. Update modal_hello to display.
 - [x] In map `lets_play_again`, Dot tends to stub her toe on a killozap slighly below her.
 - - Just jump from the ledge to the ceiling, nothing special. In three consecutive runs, she stubbed after (8,3,8) tries.
 - - ...after correction: 20 tries in a row with no toe-stub.

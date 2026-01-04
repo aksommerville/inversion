@@ -58,7 +58,7 @@ static void pause_activate() {
   switch (optid) {
     case OPT_RESUME: pause_end(); break;
     case OPT_RESTART: pause_end(); game_reset(g.mapid); break;
-    case OPT_SKIP: pause_end(); game_reset(g.mapid+1); break;
+    case OPT_SKIP: pause_end(); if (game_reset(g.mapid+1)>=0) g.skipc++; break;
     case OPT_MENU: hello_begin(); pause_end(); break;
   }
 }

@@ -22,6 +22,13 @@ struct label *label_new(struct label_list *list,const char *src,int srcc,uint32_
   return label;
 }
 
+/* Clear list.
+ */
+
+void label_list_clear(struct label_list *list) {
+  list->c=0;
+}
+
 /* Center all labels.
  */
 
@@ -33,7 +40,7 @@ void label_list_center_all(struct label_list *list) {
   int i=list->c;
   for (;i-->0;label++,y+=8) {
     label->y=y;
-    label->x=(FBW>>1)-(label->srcc*4);
+    label->x=(FBW>>1)-(label->srcc*4)+4;
   }
 }
 

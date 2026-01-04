@@ -5,6 +5,14 @@ struct g g={0};
 void egg_client_quit(int status) {
 }
 
+static int validate_hiscore(const char *src,int srcc) {
+  if (srcc!=6) return -1;
+  for (;srcc-->0;src++) {
+    if ((*src<'0')||(*src>'9')) return -1;
+  }
+  return 0;
+}
+
 int egg_client_init() {
 
   int fbw=0,fbh=0;
@@ -46,7 +54,9 @@ int egg_client_init() {
 
   srand_auto();
 
-  //game_reset(1);
+  if ((egg_store_get(g.hiscore,6,"hiscore",7)!=6)||(validate_hiscore(g.hiscore,6)<0)) {
+    memset(g.hiscore,0,sizeof(g.hiscore));
+  }
   hello_begin();
 
   return 0;

@@ -175,10 +175,12 @@ void game_no_fade_in() {
  */
  
 void game_update(double elapsed) {
+  g.playtime+=elapsed;
   g.on_goal=0;
   sprites_update(elapsed);
   if (g.deadclock>0.0) {
     if ((g.deadclock-=elapsed)<=0.0) {
+      g.deathc++;
       game_reset(g.mapid);
     }
   } else if (g.fadeinclock>0.0) {
@@ -187,8 +189,7 @@ void game_update(double elapsed) {
     if (g.goalclock<=0.0) g.goalclock=FADE_OUT_TIME;
     if ((g.goalclock-=elapsed)<=0.0) {
       if (game_reset(g.mapid+1)<0) {
-        fprintf(stderr,"GAME OVER, YOU WIN!\n");//TODO Game-over modal.
-        game_reset(1);
+        gameover_begin();
       }
     }
   } else {
