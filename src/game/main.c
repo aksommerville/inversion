@@ -41,6 +41,7 @@ int egg_client_init() {
   
   if (egg_texture_load_image(g.texid_tiles=egg_texture_new(),RID_image_tiles)<0) return -1;
   if (egg_texture_load_image(g.texid_font=egg_texture_new(),RID_image_font)<0) return -1;
+  if (egg_texture_load_image(g.texid_title=egg_texture_new(),RID_image_title)<0) return -1;
   if (egg_texture_load_raw(g.texid_bgbits=egg_texture_new(),FBW,FBH,FBW<<2,0,0)<0) return -1;
 
   srand_auto();
@@ -151,11 +152,11 @@ void inv_song(int rid) {
   egg_play_song(1,rid,1,0.400f,0.0f);
   if (g.song_playing==RID_song_inversion) {
     if (g.song_lead==NS_physics_vacant) {
-      egg_song_set(1,1,EGG_SONG_PROP_TRIM,0.400f);
+      egg_song_set(1,1,EGG_SONG_PROP_TRIM,0.388f);
       egg_song_set(1,2,EGG_SONG_PROP_TRIM,0.0f);
     } else {
       egg_song_set(1,1,EGG_SONG_PROP_TRIM,0.0f);
-      egg_song_set(1,2,EGG_SONG_PROP_TRIM,0.400f);
+      egg_song_set(1,2,EGG_SONG_PROP_TRIM,0.286f);
     }
   }
 }

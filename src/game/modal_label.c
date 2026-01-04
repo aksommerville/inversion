@@ -45,10 +45,14 @@ void label_list_render(struct label_list *list) {
   struct label *label=list->v;
   int i=list->c;
   for (;i-->0;label++) {
+    graf_set_tint(&g.graf,label->rgba|0xff);
+    graf_set_alpha(&g.graf,label->rgba&0xff);
     const char *src=label->src;
     int li=label->srcc;
     int x=label->x;
     int y=label->y;
     for (;li-->0;src++,x+=8) graf_tile(&g.graf,x,y,*src,0);
   }
+  graf_set_tint(&g.graf,0);
+  graf_set_alpha(&g.graf,0xff);
 }

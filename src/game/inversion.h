@@ -27,6 +27,7 @@ extern struct g {
   struct graf graf;
   int texid_tiles;
   int texid_font;
+  int texid_title;
   int texid_bgbits;
   int input,pvinput;
   uint8_t map[NS_sys_mapw*NS_sys_maph]; // NS_physics_*, NB not tiles.
@@ -49,6 +50,7 @@ extern struct g {
 } g;
 
 int game_reset(int mapid); // Do not call during sprite updates!
+void game_no_fade_in();
 void game_update(double elapsed);
 void game_render();
 

@@ -164,6 +164,13 @@ int game_reset(int mapid) {
   return 0;
 }
 
+/* modal_hello calls this after resetting, to indicate it will take care of the transition.
+ */
+ 
+void game_no_fade_in() {
+  g.fadeinclock=0.0;
+}
+
 /* Update.
  */
  

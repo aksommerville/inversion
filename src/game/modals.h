@@ -39,6 +39,10 @@ void label_list_render(struct label_list *list);
  
 struct hello {
   int active;
+  double transitionclock;
+  struct label_list labels;
+  char hs[32];
+  int hsc;
 };
 
 void hello_end();

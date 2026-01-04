@@ -10,6 +10,16 @@
  
 void pause_end() {
   g.pause.active=0;
+  if (g.song_playing==RID_song_inversion) {
+    if (g.song_lead==NS_physics_vacant) {
+      egg_song_set(1,1,EGG_SONG_PROP_TRIM,0.388f);
+    } else {
+      egg_song_set(1,2,EGG_SONG_PROP_TRIM,0.286f);
+    }
+    egg_song_set(1,3,EGG_SONG_PROP_TRIM,0.470f);
+    egg_song_set(1,5,EGG_SONG_PROP_TRIM,0.243f);
+    egg_song_set(1,6,EGG_SONG_PROP_TRIM,0.215f);
+  }
 }
 
 /* Begin.
@@ -17,9 +27,16 @@ void pause_end() {
  
 void pause_begin() {
   g.pause.active=1;
+  
+  egg_song_set(1,1,EGG_SONG_PROP_TRIM,0.0f);
+  egg_song_set(1,2,EGG_SONG_PROP_TRIM,0.0f);
+  egg_song_set(1,3,EGG_SONG_PROP_TRIM,0.0f);
+  egg_song_set(1,5,EGG_SONG_PROP_TRIM,0.0f);
+  egg_song_set(1,6,EGG_SONG_PROP_TRIM,0.0f);
+  
   if (!g.pause.labels.c) {
   
-    label_new(&g.pause.labels,"- PAUSED -",-1,0xffffffff,0);
+    label_new(&g.pause.labels,"- PAUSED -",-1,0xe0e0f0ff,0);
     label_new(&g.pause.labels,"",0,0,0);
     label_new(&g.pause.labels,"Resume",-1,0xffffffff,OPT_RESUME);
     label_new(&g.pause.labels,"Restart Level",-1,0xffffffff,OPT_RESTART);
@@ -42,7 +59,7 @@ static void pause_activate() {
     case OPT_RESUME: pause_end(); break;
     case OPT_RESTART: pause_end(); game_reset(g.mapid); break;
     case OPT_SKIP: pause_end(); game_reset(g.mapid+1); break;
-    case OPT_MENU: pause_end(); hello_begin(); break;
+    case OPT_MENU: hello_begin(); pause_end(); break;
   }
 }
 
@@ -76,11 +93,11 @@ void pause_update(double elapsed) {
  */
  
 void pause_render() {
-  graf_fill_rect(&g.graf,0,0,FBW,FBH,0x000000c0);
+  graf_fill_rect(&g.graf,0,0,FBW,FBH,0x204010c0);
   
   if ((g.pause.optp>=0)&&(g.pause.optp<g.pause.labels.c)) {
     struct label *label=g.pause.labels.v+g.pause.optp;
-    graf_fill_rect(&g.graf,label->x-5,label->y-5,label->srcc*8+1,9,0x000040ff);
+    graf_fill_rect(&g.graf,label->x-5,label->y-5,label->srcc*8+1,9,0x000000ff);
   }
   
   label_list_render(&g.pause.labels);
