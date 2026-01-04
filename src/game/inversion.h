@@ -10,6 +10,7 @@
 #include "egg_res_toc.h"
 #include "shared_symbols.h"
 #include "sprite.h"
+#include "modals.h"
 
 #define FBW 160
 #define FBH 96
@@ -25,6 +26,7 @@ extern struct g {
   int resc,resa;
   struct graf graf;
   int texid_tiles;
+  int texid_font;
   int texid_bgbits;
   int input,pvinput;
   uint8_t map[NS_sys_mapw*NS_sys_maph]; // NS_physics_*, NB not tiles.
@@ -38,6 +40,12 @@ extern struct g {
   double fadeinclock;
   double deadclock;
   uint8_t song_lead; // NS_physics_vacant or NS_physics_solid, whichever is passable to the hero.
+  int pause_jump_blackout; // modal_pause and modal_hello set, sprite_type_hero clears.
+  
+  // Non-game modes, in precedence order:
+  struct hello hello;
+  struct gameover gameover;
+  struct pause pause;
 } g;
 
 int game_reset(int mapid); // Do not call during sprite updates!

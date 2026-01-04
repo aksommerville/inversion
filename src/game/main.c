@@ -40,11 +40,13 @@ int egg_client_init() {
   }
   
   if (egg_texture_load_image(g.texid_tiles=egg_texture_new(),RID_image_tiles)<0) return -1;
+  if (egg_texture_load_image(g.texid_font=egg_texture_new(),RID_image_font)<0) return -1;
   if (egg_texture_load_raw(g.texid_bgbits=egg_texture_new(),FBW,FBH,FBW<<2,0,0)<0) return -1;
 
   srand_auto();
 
-  game_reset(1);
+  //game_reset(1);
+  hello_begin();
 
   return 0;
 }
@@ -55,20 +57,59 @@ int egg_client_init() {
 void egg_client_notify(int k,int v) {
 }
 
+static char get_active_modal() {
+  if (g.hello.active) return 'h';
+  if (g.gameover.active) return 'o';
+  if (g.pause.active) return 'p';
+  return 'g';
+}
+
+static void update_modal(char which,double elapsed) {
+  switch (which) {
+    case 'h': hello_update(elapsed); break;
+    case 'o': gameover_update(elapsed); break;
+    case 'p': pause_update(elapsed); break;
+    case 'g': game_update(elapsed); break;
+    default: egg_terminate(1);
+  }
+}
+
 void egg_client_update(double elapsed) {
   g.pvinput=g.input;
   g.input=egg_input_get_one(0);
   
-  //XXX
-  if ((g.input&EGG_BTN_EAST)&&!(g.pvinput&EGG_BTN_EAST)) g.gravity=0;
-  if ((g.input&EGG_BTN_AUX1)&&!(g.pvinput&EGG_BTN_AUX1)) game_reset(1);
+  // AUX1 summons or dismisses the pause menu, if game in progress.
+  if ((g.input&EGG_BTN_AUX1)&&!(g.pvinput&EGG_BTN_AUX1)) {
+    if (!g.hello.active&&!g.gameover.active) {
+      if (g.pause.active) pause_end();
+      else pause_begin();
+    }
+  }
   
-  game_update(elapsed);
+  /* Update the active modal.
+   * If that changes which modal is active, then update the new one.
+   * We don't want to render anything without it being updated first.
+   * But we only do that once, not in a loop. In case modals get broken and summon/dismiss haywire.
+   */
+  char first_active=get_active_modal();
+  update_modal(first_active,elapsed);
+  char second_active=get_active_modal();
+  if (second_active!=first_active) {
+    g.pvinput=g.input;
+    update_modal(second_active,elapsed);
+  }
 }
 
 void egg_client_render() {
   graf_reset(&g.graf);
-  game_render();
+  if (g.hello.active) {
+    hello_render();
+  } else if (g.gameover.active) {
+    gameover_render();
+  } else {
+    game_render();
+    if (g.pause.active) pause_render();
+  }
   graf_flush(&g.graf);
 }
 

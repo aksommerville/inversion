@@ -22,7 +22,7 @@ Single-screen platformer where you can change the environment three ways:
 - [x] Render bgbits: OOB are currently "same as me", they need to be "clamp to nearest". Visible in corridors touching the edge.
 - [x] Sound effects.
 - [x] Music.
-- [ ] Include some kind of Reset option. I won't be able to guarantee that all positions are escapable.
+- [x] Include some kind of Reset option. I won't be able to guarantee that all positions are escapable. ...There definitely are unescapable positions.
 - [ ] Revise graphics. I've been inconsistent about outlines, and not sure what I prefer.
 - - Also, we need more flair all around. Not sure what specifically.
 - [ ] Visual fireworks. Dust on landing (+sound effect?). Some kind of "kapow" on gravity changes...

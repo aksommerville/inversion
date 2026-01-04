@@ -643,7 +643,10 @@ static void _hero_update(struct sprite *sprite,double elapsed) {
   }
   
   // Jump or gravity.
-  if (SPRITE->seated&&(g.input&EGG_BTN_SOUTH)&&!SPRITE->jump_blackout&&!SPRITE->ducking) {
+  if (g.pause_jump_blackout) {
+    if (!(g.input&EGG_BTN_SOUTH)) g.pause_jump_blackout=0;
+  }
+  if (SPRITE->seated&&(g.input&EGG_BTN_SOUTH)&&!SPRITE->jump_blackout&&!SPRITE->ducking&&!g.pause_jump_blackout) {
     hero_jump_begin(sprite,elapsed);
   } else if (SPRITE->jumping) {
     hero_jump_update(sprite,elapsed);
