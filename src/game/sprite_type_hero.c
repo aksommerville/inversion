@@ -194,6 +194,59 @@ static void hero_flip(struct sprite *sprite) {
   }
 }
 
+/* Call when gravity is fully blocked.
+ * If we are standing on a cliff and very close to the edge, fudge it over.
+ * This should yield a pleasing (tho deleterious!) slide-off-the-corner effect.
+ * But more importantly: Without this correction, you will never be able to fall into 1-meter wide gaps.
+ */
+ 
+static void hero_align_off_axis(struct sprite *sprite,double elapsed) {
+  if (SPRITE->walking) return;
+  if (SPRITE->ducking) return;
+  if (SPRITE->dead) return;
+  
+  /* Find the cell below my center.
+   * If it's solid or OOB, we're done.
+   */
+  int cdx=0,cdy=1;
+  deltai_plus_gravity(&cdx,&cdy);
+  int x=(int)sprite->x+cdx;
+  int y=(int)sprite->y+cdy;
+  if ((x<0)||(y<0)||(x>=NS_sys_mapw)||(y>=NS_sys_maph)||(g.map[y*NS_sys_mapw+x]!=sprite->pass_physics)) return;
+  
+  /* Take my position on the non-gravity axis, just the fractional part.
+   * If it's within some threshold of 0.5, fudge toward 0.5.
+   */
+  const double threshold=0.400;
+  double v,vwhole,vfract;
+  switch (g.gravity) {
+    case 0x40: case 0x02: v=sprite->x; break;
+    case 0x10: case 0x08: v=sprite->y; break;
+    default: return;
+  }
+  vfract=modf(v,&vwhole);
+  double dv=0.5-vfract; // Sign points the direction we would move to fudge it.
+  if ((dv<-threshold)||(dv>threshold)) return;
+  if ((dv==0.0)||(dv==-0.0)) return;
+  
+  /* Slide slowly in the direction of (dv).
+   * Limit velocity so it can't push us beyond the center.
+   */
+  const double speed=2.000; // m/s
+  double dx=0.0,dy=0.0;
+  switch (g.gravity) {
+    case 0x40: case 0x02: dx=(dv>0.0)?1.0:-1.0; break;
+    case 0x10: case 0x08: dy=(dv>0.0)?1.0:-1.0; break;
+  }
+  dx*=speed*elapsed;
+  dy*=speed*elapsed;
+  if ((dv<0.0)&&(dx<dv)) dx=dv;
+  if ((dv>0.0)&&(dx>dv)) dx=dv;
+  if ((dy<0.0)&&(dy<dv)) dy=dv;
+  if ((dy>0.0)&&(dy>dv)) dy=dv;
+  sprite_move(sprite,dx,dy);
+}
+
 /* Gravity and jumping.
  */
  
@@ -259,6 +312,7 @@ static void hero_gravity_update(struct sprite *sprite,double elapsed) {
       SPRITE->seated=1;
     }
     SPRITE->gravity=0.0;
+    hero_align_off_axis(sprite,elapsed);
   } else {
     if (SPRITE->seated) {
       SPRITE->seated=0;
@@ -292,7 +346,7 @@ static int hero_hitbox_for_rotation(
         if (ny) *ny=candy+0.5;
       } else if (otherx>candx) { // top or bottom to right
         hitbox->l=candx+1.0;
-        hitbox->r=candx+1.0-sprite->hbb-sprite->hbt;
+        hitbox->r=candx+1.0+sprite->hbb-sprite->hbt;
         hitbox->t=candy+0.5+sprite->hbl;
         hitbox->b=candy+0.5+sprite->hbr;
         if (nx) *nx=candx+1.0+sprite->hbb;

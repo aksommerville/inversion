@@ -127,7 +127,7 @@ int game_reset(int mapid) {
   //mapid=1;//XXX even temper
 
   int actual_mapid=mapid;
-  #if 0 /* XXX TEMP, run maps backward during dev. */
+  #if 1 /* XXX TEMP, run maps backward during dev. */
     int resp=res_search(EGG_TID_map+1,0);
     if (resp<0) resp=-resp-1;
     if (resp>0) {

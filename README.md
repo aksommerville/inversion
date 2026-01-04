@@ -18,11 +18,13 @@ Single-screen platformer where you can change the environment three ways:
 - [x] Gravity feels a bit floaty. Tighten up.
 - [x] Hazards.
 - [x] Almost impossible to enter a 1-meter horizontal gap. Should we account for that in the hero's hitbox? Or just avoid in design? ...Avoid in design.
+- - [x] No, on second thought, we need to do some off-axis correction, it feels weird to not fall in these.
 - [x] Render bgbits: OOB are currently "same as me", they need to be "clamp to nearest". Visible in corridors touching the edge.
 - [x] Sound effects.
 - [x] Music.
 - [ ] Include some kind of Reset option. I won't be able to guarantee that all positions are escapable.
 - [ ] Revise graphics. I've been inconsistent about outlines, and not sure what I prefer.
+- - Also, we need more flair all around. Not sure what specifically.
 - [ ] Visual fireworks. Dust on landing (+sound effect?). Some kind of "kapow" on gravity changes...
 - [ ] Hello modal.
 - [ ] Gameover modal.
