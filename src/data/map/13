@@ -1,0 +1,33 @@
+0000000000000000000000000000000000000000
+0000000000000000000000000000000000000000
+0000000000000000000000000000000000000000
+0000000000000000000000000000000000000000
+0000000000000000000000000000000000000000
+0000000000000000000000000000000000020200
+0000000000000000000000000000000000000000
+0000000000000000000000000001000000000000
+0000000000000001010100000000000000000000
+0001010100000000000000000000000000000000
+0000000000000000000000000000000000000000
+0000000000000000000000000000000000000000
+
+image image:tiles
+sprite  @4,10 sprite:killozap (u8:dir)0x40 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x00
+sprite  @5,10 sprite:killozap (u8:dir)0x40 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x55
+sprite  @6,10 sprite:killozap (u8:dir)0x40 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0xaa
+sprite @10,10 sprite:killozap (u8:dir)0x40 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x00
+sprite @11,10 sprite:killozap (u8:dir)0x40 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x55
+sprite @12,10 sprite:killozap (u8:dir)0x40 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0xaa
+sprite @14,10 sprite:killozap (u8:dir)0x40 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x00
+sprite @15,10 sprite:killozap (u8:dir)0x40 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x55
+sprite @16,10 sprite:killozap (u8:dir)0x40 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0xaa
+sprite   @4,1 sprite:killozap (u8:dir)0x02 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x00
+sprite   @5,1 sprite:killozap (u8:dir)0x02 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x55
+sprite   @6,1 sprite:killozap (u8:dir)0x02 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0xaa
+sprite  @10,1 sprite:killozap (u8:dir)0x02 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x00
+sprite  @11,1 sprite:killozap (u8:dir)0x02 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x55
+sprite  @12,1 sprite:killozap (u8:dir)0x02 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0xaa
+sprite  @14,1 sprite:killozap (u8:dir)0x02 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x00
+sprite  @15,1 sprite:killozap (u8:dir)0x02 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0x55
+sprite  @16,1 sprite:killozap (u8:dir)0x02 (u8:frames)100 (u8:duty)0xa0 (u8:phase)0xaa
+sprite @2,8 sprite:hero (u32)0

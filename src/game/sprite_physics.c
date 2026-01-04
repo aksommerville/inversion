@@ -128,22 +128,38 @@ int sprite_detect_collisions(struct collision *collv,int colla,const struct aabb
       struct sprite *other=*p;
       if (other==sprite) continue;
       if (!other->solid) continue;
-      //TODO For now, we are only checking the untransformed boundaries of each sprite.
-      // Is there much risk of sprite-on-sprite collisions happening near the screen edges? Can we avoid that in design?
-      // It would be pretty expensive to do it right.
       struct aabb ob;
       sprite_get_hitbox(&ob,other);
-      if (aabb->r<=ob.l) continue;
-      if (aabb->l>=ob.r) continue;
-      if (aabb->b<=ob.t) continue;
-      if (aabb->t>=ob.b) continue;
-      if (collc>=colla) return collc;
-      struct collision *coll=collv+collc++;
-      coll->sprite=other;
-      coll->l=ob.l;
-      coll->r=ob.r;
-      coll->t=ob.t;
-      coll->b=ob.b;
+      if ((aabb->r>ob.l)&&(aabb->l<ob.r)&&(aabb->b>ob.t)&&(aabb->t<ob.b)) {
+        if (collc>=colla) return collc;
+        struct collision *coll=collv+collc++;
+        coll->sprite=other;
+        coll->l=ob.l;
+        coll->r=ob.r;
+        coll->t=ob.t;
+        coll->b=ob.b;
+      } else {
+        // No natural collision. But if (aabb) goes offscreen, try translating (ob) that way and test again.
+        // Note that we are not accounting for cases where (ob) is offscreen. Hopefully the one that can go offscreen does the checking.
+        #define CHECKTR(addx,addy) { \
+          struct aabb tr={ob.l addx,ob.r addx,ob.t addy,ob.b addy}; \
+          if ((aabb->r>tr.l)&&(aabb->l<tr.r)&&(aabb->b>tr.t)&&(aabb->t<tr.b)) { \
+            if (collc>=colla) return collc; \
+            struct collision *coll=collv+collc++; \
+            coll->sprite=other; \
+            coll->l=tr.l; \
+            coll->r=tr.r; \
+            coll->t=tr.t; \
+            coll->b=tr.b; \
+            continue; \
+          } \
+        }
+        if (aabb->l<0.0) CHECKTR(-NS_sys_mapw,+0.0)
+        if (aabb->r>NS_sys_mapw) CHECKTR(+NS_sys_mapw,+0.0)
+        if (aabb->t<0.0) CHECKTR(+0.0,-NS_sys_maph)
+        if (aabb->b>NS_sys_maph) CHECKTR(+0.0,+NS_sys_maph)
+        #undef CHECKTR
+      }
     }
   }
 

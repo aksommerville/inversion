@@ -176,7 +176,7 @@ static void _killozap_render(struct sprite *sprite,int x,int y) {
       case 0x40: dy=-1; break;
       case 0x10: dx=-1; break;
       case 0x08: dx= 1; break;
-      case 0x02: dx= 1; break;
+      case 0x02: dy= 1; break;
       default: return;
     }
     dx*=NS_sys_tilesize;
