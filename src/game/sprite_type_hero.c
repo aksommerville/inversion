@@ -308,11 +308,11 @@ static void hero_gravity_update(struct sprite *sprite,double elapsed) {
   deltaf_plus_gravity(&dx,&dy);
   if (!sprite_move(sprite,dx,dy)) {
     if (!SPRITE->seated) {
-      if (SPRITE->gravity>=5.0) inv_sound(RID_sound_land);
+      if (!SPRITE->dead&&(SPRITE->gravity>=5.0)) inv_sound(RID_sound_land);
       SPRITE->seated=1;
     }
     SPRITE->gravity=0.0;
-    hero_align_off_axis(sprite,elapsed);
+    if (!SPRITE->dead) hero_align_off_axis(sprite,elapsed);
   } else {
     if (SPRITE->seated) {
       SPRITE->seated=0;
@@ -432,7 +432,7 @@ static void hero_duck_begin(struct sprite *sprite) {
    * Just call it invalid if OOB.
    * Locate the two cells below my feet. If one is passable and the other solid, the solid one is our corner candidate.
    */
-  double afx=-0.5,bfx=0.5,afy=1.0,bfy=1.0;
+  double afx=-0.499,bfx=0.499,afy=1.0,bfy=1.0;
   deltaf_plus_gravity(&afx,&afy);
   deltaf_plus_gravity(&bfx,&bfy);
   afx+=sprite->x;
@@ -441,9 +441,29 @@ static void hero_duck_begin(struct sprite *sprite) {
   bfy+=sprite->y;
   int ax=(int)afx,ay=(int)afy,bx=(int)bfx,by=(int)bfy;
   int candx=-1,candy,otherx,othery; // (candx<0) means there is no corner.
+  // If you're exactly centered (easy to arrange, in a corner), then we'll try both neighbors.
   if ((ax==bx)&&(ay==by)) {
-    // Exactly centered. I guess we could fudge one of them out, but meh.
-  } else if (
+    if ((ax<0)||(ay<0)||(ax>=NS_sys_mapw)||(ay>=NS_sys_maph)) {
+      // ...centered but oob, forget it.
+    } else {
+      int b1x=ax,b1y=ay,b2x=ax,b2y=ay;
+      if ((g.gravity==0x40)||(g.gravity==0x02)) {
+        b1x--;
+        b2x++;
+      } else {
+        b1y--;
+        b2y++;
+      }
+      if ((b1x>=0)&&(b1y>=0)&&(g.map[b1y*NS_sys_mapw+b1x]==sprite->pass_physics)) {
+        bx=b1x;
+        by=b1y;
+      } else if ((b2x<NS_sys_mapw)&&(b2y<NS_sys_maph)&&(g.map[b2y*NS_sys_mapw+b2x]==sprite->pass_physics)) {
+        bx=b2x;
+        by=b2y;
+      }
+    }
+  }
+  if (
     (ax<0)||(ay<0)||(ax>=NS_sys_mapw)||(ay>=NS_sys_maph)||
     (bx<0)||(by<0)||(bx>=NS_sys_mapw)||(by>=NS_sys_maph)
   ) {

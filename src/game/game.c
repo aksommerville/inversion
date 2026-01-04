@@ -124,7 +124,7 @@ int game_reset(int mapid) {
 
   inv_song(RID_song_inversion);
   
-  //mapid=1;//XXX even temper
+  mapid=1;//XXX even temper
 
   int actual_mapid=mapid;
   #if 1 /* XXX TEMP, run maps backward during dev. */
