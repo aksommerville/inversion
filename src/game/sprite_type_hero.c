@@ -130,6 +130,24 @@ static int hero_valid_wall(struct sprite *sprite,int d) {
   return 1;
 }
 
+/* Cheat my vertical edges inward a little bit to avoid stubbing the toe.
+ * ...duh oops, at first I thought this would have to account for gravity, but sprite_move() already does that.
+ * So it's pretty simple.
+ */
+ 
+static void hero_cheat_hitbox_vertically(struct aabb *restore,struct sprite *sprite) {
+  const double smidgeon=0.010;
+  restore->t=sprite->hbt;
+  restore->b=sprite->hbb;
+  sprite->hbt+=smidgeon;
+  sprite->hbb-=smidgeon;
+}
+
+static void hero_restore_hitbox(struct sprite *sprite,struct aabb *restore) {
+  sprite->hbt=restore->t;
+  sprite->hbb=restore->b;
+}
+
 /* Walking.
  */
  
@@ -146,7 +164,11 @@ static void hero_walk(struct sprite *sprite,int d,double elapsed) {
   double dx=(d<0)?-1.0:1.0,dy=0.0;
   dx*=elapsed*WALK_SPEED;
   deltaf_plus_gravity(&dx,&dy);
-  if (!sprite_move(sprite,dx,dy)) {
+  struct aabb restorehitbox;
+  hero_cheat_hitbox_vertically(&restorehitbox,sprite);
+  int moved=sprite_move(sprite,dx,dy);
+  hero_restore_hitbox(sprite,&restorehitbox);
+  if (!moved) {
     if (hero_valid_wall(sprite,d)) {
       if (SPRITE->pushing!=d) {
         SPRITE->pushing=d;

@@ -124,10 +124,10 @@ int game_reset(int mapid) {
 
   inv_song(RID_song_inversion);
   
-  mapid=1;//XXX even temper
+  //mapid=1;//XXX even temper
 
   int actual_mapid=mapid;
-  #if 1 /* XXX TEMP, run maps backward during dev. */
+  #if 0 /* XXX TEMP, run maps backward during dev. */
     int resp=res_search(EGG_TID_map+1,0);
     if (resp<0) resp=-resp-1;
     if (resp>0) {
@@ -136,6 +136,54 @@ int game_reset(int mapid) {
       actual_mapid=mapidz-mapid+1;
       fprintf(stderr,"!!! REVERSED MAPS !!! Using map:%d in place of map:%d.\n",actual_mapid,mapid);
     }
+  #endif
+  
+  #if 1 /* XXX Explicit order. */
+  /* Original highly-illogical order:
+1-lets_play_again
+2-learn_looping
+3-learn_walls
+4-multiple_tricks
+5-easy_with_walls
+6-rotate_to_invert
+7-start_in_wall
+8-move_blocks
+9-lotsa_switcheroo
+10-golf_club
+11-underside
+12-floating_platforms
+13-floating_platforms_with_feeling
+14-learn_upside_down
+15-lets_play
+16-skirt_the_zapper
+17-walls_n_rotate
+18-box_wall
+*/
+    const int mapid_in_order[]={
+      1,//-lets_play_again
+      2,//-learn_looping
+      3,//-learn_walls
+      4,//-multiple_tricks
+      5,//-easy_with_walls
+      6,//-rotate_to_invert
+      7,//-start_in_wall
+      8,//-move_blocks
+      9,//-lotsa_switcheroo
+      10,//-golf_club
+      11,//-underside
+      12,//-floating_platforms
+      13,//-floating_platforms_with_feeling
+      14,//-learn_upside_down
+      15,//-lets_play
+      16,//-skirt_the_zapper
+      17,//-walls_n_rotate
+      18,//-box_wall
+    };
+    int p=mapid-1;
+    int c=sizeof(mapid_in_order)/sizeof(int);
+    if ((p<0)||(p>=c)) return -1;
+    actual_mapid=mapid_in_order[p];
+    fprintf(stderr,"!!! EXPLICIT ORDER !!! Substituting map:%d for requested map:%d\n",actual_mapid,mapid);
   #endif
 
   const void *serial=0;

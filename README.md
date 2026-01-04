@@ -29,4 +29,7 @@ Single-screen platformer where you can change the environment three ways:
 - [ ] Hello modal.
 - [ ] Gameover modal.
 - [ ] Scorekeeping.
+- [x] In map `lets_play_again`, Dot tends to stub her toe on a killozap slighly below her.
+- - Just jump from the ledge to the ceiling, nothing special. In three consecutive runs, she stubbed after (8,3,8) tries.
+- - ...after correction: 20 tries in a row with no toe-stub.
 - [ ] Itch page.
