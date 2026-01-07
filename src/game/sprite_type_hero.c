@@ -333,7 +333,10 @@ static void hero_gravity_update(struct sprite *sprite,double elapsed) {
   deltaf_plus_gravity(&dx,&dy);
   if (!sprite_move(sprite,dx,dy)) {
     if (!SPRITE->seated) {
-      if (!SPRITE->dead&&(SPRITE->gravity>=5.0)) inv_sound(RID_sound_land);
+      if (!SPRITE->dead&&(SPRITE->gravity>=5.0)) {
+        inv_sound(RID_sound_land);
+        sprite_spawn(sprite->x,sprite->y,RID_sprite_dust,0,0,0,0);
+      }
       SPRITE->seated=1;
     }
     SPRITE->gravity=0.0;

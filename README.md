@@ -23,9 +23,9 @@ Single-screen platformer where you can change the environment three ways:
 - [x] Sound effects.
 - [x] Music.
 - [x] Include some kind of Reset option. I won't be able to guarantee that all positions are escapable. ...There definitely are unescapable positions.
-- [ ] Revise graphics. I've been inconsistent about outlines, and not sure what I prefer.
+- [x] Revise graphics. I've been inconsistent about outlines, and not sure what I prefer.
 - - Also, we need more flair all around. Not sure what specifically.
-- [ ] Visual fireworks. Dust on landing (+sound effect?). Some kind of "kapow" on gravity changes...
+- [x] Visual fireworks. Dust on landing (+sound effect?). Some kind of "kapow" on gravity changes...
 - [ ] Music for gameover.
 - [x] Hello modal.
 - [x] Gameover modal.

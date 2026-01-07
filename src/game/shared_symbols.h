@@ -40,10 +40,12 @@
 #define NS_sprtype_hero     1 /* (u32)0 */
 #define NS_sprtype_slug     2 /* (u32)0 */
 #define NS_sprtype_killozap 3 /* (u8:dir)0x02 (u8:frames)60 (u8:duty)0x80 (u8:phase)0x00 */
+#define NS_sprtype_dust     4 /* (u32)0 */
 #define FOR_EACH_SPRTYPE \
   _(dummy) \
   _(hero) \
   _(slug) \
-  _(killozap)
+  _(killozap) \
+  _(dust)
 
 #endif
