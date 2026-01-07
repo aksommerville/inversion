@@ -59,11 +59,14 @@ struct gameover {
   int active;
   char score[6];
   int new_high_score;
+  char tmsg[32];
+  int tmsgc;
   char msg[32];
-  int msgc;
   struct label_list labels;
   double blink_clock;
   struct label *blink_label;
+  double animclock;
+  int animframe;
 };
 
 void gameover_end();
