@@ -159,7 +159,9 @@ void inv_sound(int rid) {
 void inv_song(int rid) {
   if (rid==g.song_playing) return;
   g.song_playing=rid;
-  egg_play_song(1,rid,1,0.400f,0.0f);
+  int repeat=1;
+  if (rid==RID_song_final_version) repeat=0;
+  egg_play_song(1,rid,repeat,0.400f,0.0f);
   if (g.song_playing==RID_song_inversion) {
     if (g.song_lead==NS_physics_vacant) {
       egg_song_set(1,1,EGG_SONG_PROP_TRIM,0.388f);

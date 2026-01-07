@@ -26,7 +26,7 @@ Single-screen platformer where you can change the environment three ways:
 - [x] Revise graphics. I've been inconsistent about outlines, and not sure what I prefer.
 - - Also, we need more flair all around. Not sure what specifically.
 - [x] Visual fireworks. Dust on landing (+sound effect?). Some kind of "kapow" on gravity changes...
-- [ ] Music for gameover.
+- [x] Music for gameover.
 - [x] Hello modal.
 - [x] Gameover modal.
 - [x] Scorekeeping. Update modal_hello to display.

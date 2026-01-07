@@ -65,7 +65,7 @@ static int gameover_repr_time(char *dst,int dsta,double sf) {
  
 void gameover_begin() {
   g.gameover.active=1;
-  inv_song(0);
+  inv_song(RID_song_final_version);
   
   generate_score(g.gameover.score,g.playtime,g.deathc,g.skipc);
   if (memcmp(g.gameover.score,g.hiscore,6)>0) {
