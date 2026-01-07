@@ -15,3 +15,4 @@ image image:tiles
 sprite @3,9 sprite:hero (u32)0
 sprite @8,2 sprite:killozap (u8:dir)0x02 (u8:frames)100 (u8:duty)0x60 (u8:phase)0x00
 sprite @8,9 sprite:killozap (u8:dir)0x40 (u8:frames)100 (u8:duty)0x60 (u8:phase)0x00
+message "Reach\u0020the\u0020goal!"

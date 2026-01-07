@@ -17,3 +17,4 @@ sprite @13,6 sprite:killozap (u8:dir)0x02 (u8:frames)60 (u8:duty)0x80 (u8:phase)
 sprite @13,10 sprite:killozap (u8:dir)0x40 (u8:frames)60 (u8:duty)0x80 (u8:phase)0x00
 sprite @6,6 sprite:killozap (u8:dir)0x02 (u8:frames)60 (u8:duty)0x80 (u8:phase)0x00
 sprite @6,10 sprite:killozap (u8:dir)0x40 (u8:frames)60 (u8:duty)0x80 (u8:phase)0x00
+message "You're\u0020ready,\u0020let's\u0020go!"

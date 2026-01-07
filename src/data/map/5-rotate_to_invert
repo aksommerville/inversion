@@ -13,3 +13,4 @@
 
 image image:tiles
 sprite @5,8 sprite:hero (u32)0
+message "Duck\u0020at\u0020the\u0020corner."

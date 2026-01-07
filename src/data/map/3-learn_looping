@@ -13,3 +13,4 @@
 
 image image:tiles
 sprite @3,7 sprite:hero (u32)0
+message "Screen\u0020wraps\u0020around."

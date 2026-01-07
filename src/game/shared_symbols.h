@@ -16,6 +16,7 @@
 #define CMD_map_image     0x20 /* u16:imageid */
 #define CMD_map_sprite    0x61 /* u16:position, u16:spriteid, u32:arg */
 #define CMD_map_door      0x62 /* u16:position, u16:mapid, u16:dstposition, u16:arg */
+#define CMD_map_message   0xe0 /* u8:len ...:text */
 
 #define CMD_sprite_solid  0x01 /* --- */
 #define CMD_sprite_image  0x20 /* u16:imageid */

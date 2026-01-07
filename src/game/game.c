@@ -144,6 +144,7 @@ int game_reset(int mapid) {
   g.fadeinclock=FADE_IN_TIME;
   g.goalclock=0.0;
   g.deadclock=0.0;
+  g.messagec=0;
   
   struct cmdlist_reader reader={.v=rmap.cmd,.c=rmap.cmdc};
   struct cmdlist_entry cmd;
@@ -156,6 +157,12 @@ int game_reset(int mapid) {
           int rid=(cmd.arg[2]<<8)|cmd.arg[3];
           const uint8_t *arg=cmd.arg+4;
           struct sprite *sprite=sprite_spawn(x,y,rid,arg,0,0,0);
+        } break;
+        
+      case CMD_map_message: {
+          g.message=(const char*)cmd.arg;
+          g.messagec=cmd.argc;
+          g.messageclock=0.0;
         } break;
     }
   }
@@ -177,6 +184,7 @@ void game_no_fade_in() {
 void game_update(double elapsed) {
   g.playtime+=elapsed;
   if (g.kapowclock>0.0) g.kapowclock-=elapsed;
+  if (g.messagec) g.messageclock+=elapsed;
   g.on_goal=0;
   sprites_update(elapsed);
   if (g.deadclock>0.0) {
@@ -221,6 +229,20 @@ void game_render() {
   }
   
   sprites_render();
+  
+  if (g.messagec&&(g.messageclock<MESSAGE_FADEOUT_END)) {
+    if (g.messageclock>MESSAGE_FADEOUT_START) {
+      int alpha=(int)(((MESSAGE_FADEOUT_END-g.messageclock)*255.0)/(MESSAGE_FADEOUT_END-MESSAGE_FADEOUT_START));
+      if (alpha<0) alpha=0;
+      if (alpha<0xff) graf_set_alpha(&g.graf,alpha);
+    }
+    graf_set_input(&g.graf,g.texid_font);
+    int x=(FBW>>1)-(g.messagec*2)+2;
+    int y=FBH-4,i=g.messagec;
+    const char *src=g.message;
+    for (;i-->0;src++,x+=4) graf_tile(&g.graf,x,y,0x80|*src,0);
+    graf_set_alpha(&g.graf,0xff);
+  }
   
   int alpha=0;
   if (g.deadclock>0.0) alpha=0xff-(int)((g.deadclock*255.0)/FADE_OUT_TIME);

@@ -13,3 +13,4 @@
 
 image image:tiles
 sprite @13,9 sprite:hero (u32)0
+message "Bonk\u0020ceiling\u0020to\u0020reverse."

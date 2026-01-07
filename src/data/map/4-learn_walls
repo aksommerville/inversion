@@ -13,3 +13,4 @@
 
 image image:tiles
 sprite @4,6 sprite:hero (u32)0
+message "Smoosh\u0020into\u0020the\u0020wall!"

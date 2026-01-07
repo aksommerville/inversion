@@ -19,6 +19,8 @@
 #define FADE_IN_TIME  0.333
 #define DEAD_TIME     2.000
 #define KAPOW_TIME    0.300
+#define MESSAGE_FADEOUT_START 2.000
+#define MESSAGE_FADEOUT_END   3.500
 
 extern struct g {
   void *rom;
@@ -45,6 +47,9 @@ extern struct g {
   int pause_jump_blackout; // modal_pause and modal_hello set, sprite_type_hero clears.
   int kapowx,kapowy;
   double kapowclock;
+  const char *message;
+  int messagec;
+  double messageclock;
   
   // Non-game modes, in precedence order:
   struct hello hello;
