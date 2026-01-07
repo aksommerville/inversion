@@ -176,6 +176,7 @@ void game_no_fade_in() {
  
 void game_update(double elapsed) {
   g.playtime+=elapsed;
+  if (g.kapowclock>0.0) g.kapowclock-=elapsed;
   g.on_goal=0;
   sprites_update(elapsed);
   if (g.deadclock>0.0) {
@@ -203,6 +204,22 @@ void game_update(double elapsed) {
 void game_render() {
   graf_set_input(&g.graf,g.texid_bgbits);
   graf_decal(&g.graf,0,0,0,0,FBW,FBH);
+  
+  if (g.kapowclock>0.0) {
+    int alpha=(g.kapowclock*180.0)/KAPOW_TIME;
+    if (alpha>0xff) alpha=0xff;
+    if (alpha>0) {
+      graf_set_alpha(&g.graf,alpha);
+      graf_set_input(&g.graf,g.texid_tiles);
+      graf_decal(&g.graf,g.kapowx,g.kapowy,112,24,16,16);
+      graf_fill_rect(&g.graf,0,0,g.kapowx,FBH,0x000000ff);
+      graf_fill_rect(&g.graf,g.kapowx,0,16,g.kapowy,0x000000ff);
+      graf_fill_rect(&g.graf,g.kapowx+16,0,FBW,FBH,0x000000ff);
+      graf_fill_rect(&g.graf,g.kapowx,g.kapowy+16,16,FBH,0x000000ff);
+      graf_set_alpha(&g.graf,0xff);
+    }
+  }
+  
   sprites_render();
   
   int alpha=0;
@@ -217,6 +234,15 @@ void game_render() {
 
 /* Gravity.
  */
+
+void set_kapow(double x,double y) {
+  // They give us the center. (g.kapowx,y) is the corner of a 16x16 rect.
+  g.kapowx=(int)(x*NS_sys_tilesize); if (g.kapowx<0) g.kapowx+=FBW; else g.kapowx%=FBW;
+  g.kapowy=(int)(y*NS_sys_tilesize); if (g.kapowy<0) g.kapowy+=FBH; else g.kapowy%=FBH;
+  g.kapowx-=8;
+  g.kapowy-=8;
+  g.kapowclock=KAPOW_TIME;
+}
 
 void gravity_reverse() {
   switch (g.gravity) {

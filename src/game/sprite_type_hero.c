@@ -295,6 +295,9 @@ static void hero_jump_update(struct sprite *sprite,double elapsed) {
       inv_sound(RID_sound_bonk);
       hero_flip(sprite);
       gravity_reverse();
+      double kx=0.0,ky=0.5;
+      deltaf_plus_gravity(&kx,&ky);
+      set_kapow(sprite->x+kx,sprite->y+ky);
     }
     hero_jump_crest(sprite);
     return;

@@ -18,6 +18,7 @@
 #define FADE_OUT_TIME 0.333
 #define FADE_IN_TIME  0.333
 #define DEAD_TIME     2.000
+#define KAPOW_TIME    0.300
 
 extern struct g {
   void *rom;
@@ -42,6 +43,8 @@ extern struct g {
   double deadclock;
   uint8_t song_lead; // NS_physics_vacant or NS_physics_solid, whichever is passable to the hero.
   int pause_jump_blackout; // modal_pause and modal_hello set, sprite_type_hero clears.
+  int kapowx,kapowy;
+  double kapowclock;
   
   // Non-game modes, in precedence order:
   struct hello hello;
@@ -66,6 +69,7 @@ void inv_sound(int rid);
 void inv_song(int rid);
 void inv_song_lead(uint8_t lead);
 
+void set_kapow(double x,double y);
 void gravity_reverse();
 void gravity_rotate(int d); // <0=deasil, >0=clockwise
 
